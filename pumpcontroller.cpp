@@ -15,13 +15,14 @@ PumpController::PumpController(QWidget *parent)
 
     //Table model setup
     tableModel = new TableModel(this);
+    QHeaderView* header=ui->tableSegments->verticalHeader();
+    header->setDefaultSectionSize(20); // 20 px height
+    header->sectionResizeMode(QHeaderView::Fixed);
     ui->tableSegments->setModel(tableModel);
-    ui->tableSegments->setSelectionMode(QAbstractItemView::SingleSelection);
+    // We reimplment selection so clicking selects/deselects whole rows
+    ui->tableSegments->setSelectionMode(QAbstractItemView::NoSelection);
     ui->tableSegments->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->tableSegments->setDragEnabled(true);
-    ui->tableSegments->setAcceptDrops(true);
-    ui->tableSegments->setDropIndicatorShown(true);
-    ui->tableSegments->setDragDropMode(QAbstractItemView::InternalMove);
+
 
 
 
@@ -57,7 +58,21 @@ PumpController::PumpController(QWidget *parent)
     connect(ui->butAddSegment, &QPushButton::clicked, this, &PumpController::addSegment);
     connect(ui->butDeleteSegment, &QPushButton::clicked, this, &PumpController::rmSegment);
     connect(ui->butClearSegments, &QPushButton::clicked, this, &PumpController::clearSegments);
+    // this one allows for clicking and unclicking a row
+    connect(ui->tableSegments, &QTableView::clicked, this, [=](const QModelIndex &index) {
+        int row = index.row();
+        QItemSelectionModel *selectionModel = ui->tableSegments->selectionModel();
 
+        QModelIndex topLeft = ui->tableSegments->model()->index(row, 0);
+        QModelIndex bottomRight = ui->tableSegments->model()->index(row, ui->tableSegments->model()->columnCount() - 1);
+        QItemSelection selection(topLeft, bottomRight);
+
+        if (selectionModel->isRowSelected(row, QModelIndex())) {
+            selectionModel->select(selection, QItemSelectionModel::Deselect);
+        } else {
+            selectionModel->select(selection, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+        }
+    });
 
     // Run timers, for protocol stuff
     //connect(&this->int_timer, &QTimer::timeout, this, &PumpController::timer_tick);
@@ -206,13 +221,19 @@ void PumpController::settingsChanged()
 void PumpController::addSegment()
 {
     if (ui->spinSegTime->value() > 0){
+        int row = -1;
+        QModelIndexList selected = ui->tableSegments->selectionModel()->selectedRows();
+        if (!selected.isEmpty()) {
+            row = selected.first().row()+1;
+        }
         TableModel *model = qobject_cast<TableModel*>(ui->tableSegments->model());
         if (model) {
-            model->addSegment(ui->spinSegTime->value(), ui->spinStartConc->value(), ui->spinEndConc->value());
+            model->addSegment(ui->spinSegTime->value(), ui->spinStartConc->value(), ui->spinEndConc->value(), row);
         }
         ui->spinSegTime->setValue(0.00);
         ui->spinStartConc->setValue(0);
         ui->spinEndConc->setValue(0);
+        ui->tableSegments->selectionModel()->clearSelection();
     } else {
         writeToConsole("You can't add a segment zero minutes long...", UiYellow);
     }

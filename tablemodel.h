@@ -32,7 +32,7 @@ public:
 
     bool removeRows(int position, int rows, const QModelIndex& parent = QModelIndex()) override;
 
-    void addSegment(double timeMinutes, int startConc, int endConc);
+    void addSegment(double timeMinutes, int startConc, int endConc, int insertRow);
     void removeSegment(int pos = -1);
     std::vector<std::vector<QString>> getSegments() const;
     void clearSegments();

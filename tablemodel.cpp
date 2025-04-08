@@ -83,13 +83,17 @@ bool TableModel::removeRows(int position, int rows, const QModelIndex& parent) {
 
 
 
-void TableModel::addSegment(double timeMinutes, int startConc, int endConc) {
-    beginInsertRows(QModelIndex(), static_cast<int>(tableData.size()), static_cast<int>(tableData.size()));
+void TableModel::addSegment(double timeMinutes, int startConc, int endConc, int insertRow) {
+    // Clamp the insert row
+    if (insertRow < 0 || insertRow > static_cast<int>(tableData.size()))
+        insertRow = static_cast<int>(tableData.size());
+
+    beginInsertRows(QModelIndex(), insertRow, insertRow);
     std::vector<QString> row;
     row.push_back(QString::number(timeMinutes));
     row.push_back(QString::number(startConc));
     row.push_back(QString::number(endConc));
-    tableData.push_back(row);
+    tableData.insert(tableData.begin() + insertRow, row);
     endInsertRows();
 }
 
