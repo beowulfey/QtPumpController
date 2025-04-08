@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QList>
+#include "tablemodel.h"
 
 //#include "pump.h"
 
@@ -26,6 +27,10 @@ public slots:
     void setCOMs(const QString& cond, const QString& pump);
     void confirmSettings();
     void settingsChanged();
+
+    void addSegment();
+    void rmSegment();
+    void clearSegments();
     //void timerTick();
 
 
@@ -56,8 +61,12 @@ public slots:
 
 private:
     Ui::PumpController *ui;
-    QString pump_com_port;
-    QString cond_com_port;
+    QColor UiGreen = QColorConstants::Svg::mediumseagreen;
+    QColor UiRed = QColorConstants::Svg::indianred;
+    QString pumpComPort;
+    QString condComPort;
+    float offset;
+    TableModel *tableModel;
     //QList<Pump> pumpList;
 };
 #endif // PUMPCONTROLLER_H

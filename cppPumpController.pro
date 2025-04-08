@@ -15,7 +15,8 @@ SOURCES += \
     plotwidget.cpp \
     pump.cpp \
     pumpcontroller.cpp \
-    $$PWD/libs/qcustomplot/qcustomplot.cpp
+    $$PWD/libs/qcustomplot/qcustomplot.cpp \
+    tablemodel.cpp
 
 HEADERS += \
     comsdialog.h \
@@ -23,7 +24,8 @@ HEADERS += \
     plotwidget.h \
     pump.h \
     pumpcontroller.h \
-    $$PWD/libs/qcustomplot/qcustomplot.h
+    $$PWD/libs/qcustomplot/qcustomplot.h \
+    tablemodel.h
 
 FORMS += \
     pumpcontroller.ui \

@@ -5,44 +5,55 @@
 PumpController::PumpController(QWidget *parent)
     : QMainWindow(parent),
     ui(new Ui::PumpController),
-    pump_com_port("None"),
-    cond_com_port("None")
+    pumpComPort("None"),
+    condComPort("None"),
+    offset(0.00)
 {
     // Create window
     ui->setupUi(this);
     this->setWindowTitle(QString("Pump Controller"));
 
+    tableModel = new TableModel(this);
+    ui->tableSegments->setModel(tableModel);
+    ui->tableSegments->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->tableSegments->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+
 
 
     // Set default settings for everything
-    this->ui->spin_flow_rate->setValue(0.4);
-    this->ui->spin_pac->setValue(0);
-    this->ui->spin_pbc->setValue(100);
+    ui->spinFlowRate->setValue(0.4);
+    ui->spinPac->setValue(0);
+    ui->spinPbc->setValue(100);
 
     // Disable everything before confirmation
-    this->ui->spin_straight_conc->setDisabled(1);
-    this->ui->but_start_pump->setDisabled(1);
-    this->ui->but_update_pump->setDisabled(1);
-    this->ui->but_stop_pump->setDisabled(1);
-    this->ui->spin_seg_time->setDisabled(1);
-    this->ui->spin_start_conc->setDisabled(1);
-    this->ui->spin_end_conc->setDisabled(1);
-    this->ui->but_add_segment->setDisabled(1);
-    this->ui->but_clear_segments->setDisabled(1);
-    this->ui->table_segments->setDisabled(1);
-    this->ui->but_start_protocol->setDisabled(1);
-    this->ui->but_stop_protocol->setDisabled(1);
-    this->ui->but_update_protocol->setDisabled(1);
-    this->ui->table_segments->resizeColumnsToContents();
+    ui->spinStraightConc->setDisabled(1);
+    ui->butStartPump->setDisabled(1);
+    ui->butUpdatePump->setDisabled(1);
+    ui->butStopPump->setDisabled(1);
+    ui->spinSegTime->setDisabled(1);
+    ui->spinStartConc->setDisabled(1);
+    ui->spinEndConc->setDisabled(1);
+    ui->butAddSegment->setDisabled(1);
+    ui->butClearSegments->setDisabled(1);
+    ui->tableSegments->setDisabled(1);
+    ui->butStartProtocol->setDisabled(1);
+    ui->butStopProtocol->setDisabled(1);
+    ui->butUpdateProtocol->setDisabled(1);
+    ui->tableSegments->resizeColumnsToContents();
 
     // SIGNALS TO SLOTS
     // These are for UX, disabling/enabling to encourage order of operations. Can't start protocols until settings are confirmed.
-    connect(this->ui->but_confirm_settings, &QPushButton::clicked, this, &PumpController::confirmSettings);
-    connect(this->ui->but_set_coms, &QPushButton::clicked, this, &PumpController::openCOMsDialog);
-    connect(this->ui->spin_flow_rate, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &PumpController::settingsChanged);
-    connect(this->ui->spin_pac, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &PumpController::settingsChanged);
-    connect(this->ui->spin_pbc, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &PumpController::settingsChanged);
-    connect(this->ui->but_confirm_settings, &QPushButton::clicked, this, &PumpController::confirmSettings);
+    connect(ui->butConfirmSettings, &QPushButton::clicked, this, &PumpController::confirmSettings);
+    connect(ui->butSetComs, &QPushButton::clicked, this, &PumpController::openCOMsDialog);
+    connect(ui->spinFlowRate, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &PumpController::settingsChanged);
+    connect(ui->spinPac, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &PumpController::settingsChanged);
+    connect(ui->spinPbc, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &PumpController::settingsChanged);
+
+    connect(ui->butAddSegment, &QPushButton::clicked, this, &PumpController::addSegment);
+    connect(ui->butDeleteSegment, &QPushButton::clicked, this, &PumpController::rmSegment);
+    connect(ui->butClearSegments, &QPushButton::clicked, this, &PumpController::clearSegments);
+
 
     // Run timers, for protocol stuff
     //connect(&this->int_timer, &QTimer::timeout, this, &PumpController::timer_tick);
@@ -52,15 +63,14 @@ PumpController::PumpController(QWidget *parent)
     //connect(this->ui->but_start_pump, &QPushButton::clicked, this, &PumpController::start_pump);
     //connect(this->ui->but_stop_pump, &QPushButton::clicked, this, &PumpController::stop_pump);
     //connect(this->ui->but_update_pump, &QPushButton::clicked, this, &PumpController::update_pump);
-    //connect(this->ui->but_add_segment, &QPushButton::clicked, this, &PumpController::add_segment);
-    //connect(this->ui->but_clear_segments, &QPushButton::clicked, this, &PumpController::clear_segments);
+
     //connect(this->ui->but_start_protocol, &QPushButton::clicked, this, &PumpController::start_protocol);
     //connect(this->ui->but_stop_protocol, &QPushButton::clicked, this, &PumpController::stop_protocol);
 
     //connect(this->ui->but_update_protocol, &QPushButton::clicked, this, &PumpController::update_protocol);
 
 
-    //connect(this->ui->but_delete_segment, &QPushButton::clicked, this, &PumpController::rm_segment);
+
     //connect(this->ui->but_set_cond_min, &QPushButton::clicked, this, &PumpController::set_cond_min);
     //connect(this->ui->but_set_cond_max, &QPushButton::clicked, this, &PumpController::set_cond_max);
     //connect(this->ui->but_reset_cond, &QPushButton::clicked, this, &PumpController::reset_cond);
@@ -76,15 +86,15 @@ PumpController::~PumpController()
 
 void PumpController::writeToConsole(const QString& text, const QColor& color)
 {
-    QString formattedText = QDateTime::currentDateTime().toString("HH:mm:ss.ms")+" | "+ QString("<span style=\"white-space: pre-wrap; color: %1\">%2</span><br>")
+    QString formattedText = "<code>" + QDateTime::currentDateTime().toString("HH:mm:ss.ms")+" | "+ QString("<span style=\"white-space: pre-wrap; color: %1\">%2</span></code><br>")
     .arg(color.name(), text);
 
-    QTextCursor cursor = this->ui->console->textCursor();
+    QTextCursor cursor = ui->console->textCursor();
     cursor.movePosition(QTextCursor::End);
-    this->ui->console->setTextCursor(cursor);
-    this->ui->console->insertHtml(formattedText);
+    ui->console->setTextCursor(cursor);
+    ui->console->insertHtml(formattedText);
     cursor.movePosition(QTextCursor::PreviousCharacter);
-    this->ui->console->setTextCursor(cursor);
+    ui->console->setTextCursor(cursor);
 }
 
 
@@ -99,45 +109,54 @@ void PumpController::openCOMsDialog()
 void PumpController::setCOMs(const QString& cond, const QString& pump)
 {
     if (pump != "None") {
-        pump_com_port = pump;
-        writeToConsole("PUMP PORT SELECTED: " + pump_com_port, QColorConstants::Green);
+        pumpComPort = pump;
+        writeToConsole("PUMP PORT SELECTED: " + pumpComPort, UiGreen);
     } else {
-        pump_com_port.clear();
-        writeToConsole("No pump port selected!", QColorConstants::Red);
+        pumpComPort.clear();
+        writeToConsole("No pump port selected!", UiRed);
     }
 
     if (cond != "None") {
-        cond_com_port = cond;
-        writeToConsole("COND METER PORT SELECTED: " + cond_com_port, QColorConstants::Green);
+        condComPort = cond;
+        writeToConsole("COND METER PORT SELECTED: " + condComPort, UiGreen);
     } else {
-        cond_com_port.clear();
-        writeToConsole("No cond meter port selected!", QColorConstants::Red);
+        condComPort.clear();
+        writeToConsole("No cond meter port selected!", UiRed);
     }
+    this->settingsChanged();
 }
 
 
 void PumpController::confirmSettings()
 {
-    //this->write_to_console(f"{datetime->strftime(datetime->now(), FMT)} PUMP SETTINGS CONFIRMED:", color=GREEN)
-    //this->write_to_console(f"{datetime->strftime(datetime->now(), FMT)} Flow Rate: {this->ui->spin_flow_rate->value()}; PAC: {this->ui->spin_pac->value()}; PBC: {this->ui->spin_pbc->value()}", color=GREEN)
-    this->settingsChanged();
-    this->ui->but_confirm_settings->setStyleSheet("QPushButton { color: green;}");
-    this->ui->but_confirm_settings->setText("Confirmed");
-    this->ui->spin_straight_conc->setEnabled(1);
-    this->ui->but_start_pump->setEnabled(1);
-    this->ui->but_update_pump->setEnabled(1);
-    this->ui->but_stop_pump->setEnabled(1);
-    this->ui->spin_seg_time->setEnabled(1);
-    this->ui->spin_start_conc->setEnabled(1);
-    this->ui->spin_end_conc->setEnabled(1);
-    this->ui->but_add_segment->setEnabled(1);
-    this->ui->but_clear_segments->setEnabled(1);
-    this->ui->table_segments->setEnabled(1);
-    this->ui->but_start_protocol->setEnabled(1);
-    this->ui->but_stop_protocol->setEnabled(1);
-    this->ui->but_update_protocol->setEnabled(1);
-    this->ui->but_confirm_settings->setDisabled(1);
-    this->ui->spin_seg_time->setMaximum(30); // # 30 minutes maximum time; limit of pump pause?
+    writeToConsole("PUMP SETTINGS CONFIRMED: ", UiGreen);
+    writeToConsole("Flow Rate (mL/min): " + QString::number(ui->spinFlowRate->value(), 'f', 2) +
+                              " | Pump A (mM): " + QString::number(ui->spinPac->value(), 'f', 0) +
+                              " | Pump B (mM): " + QString::number(ui->spinPbc->value(), 'f', 0), UiGreen);
+    if (pumpComPort == "None" || condComPort == "None" ) {
+        writeToConsole("Confirm ports for pumps and meter! At least one was not selected!", UiRed);
+    }
+    ui->butConfirmSettings->setStyleSheet("QPushButton { color: mediumseagreen;}");
+    ui->butConfirmSettings->setText("Confirmed");
+    ui->spinStraightConc->setEnabled(1);
+    ui->butStartPump->setEnabled(1);
+    ui->butUpdatePump->setEnabled(1);
+    ui->butStopPump->setEnabled(1);
+    ui->spinSegTime->setEnabled(1);
+    ui->spinStartConc->setEnabled(1);
+    ui->spinEndConc->setEnabled(1);
+    ui->butAddSegment->setEnabled(1);
+    ui->butClearSegments->setEnabled(1);
+    ui->tableSegments->setEnabled(1);
+    ui->butStartProtocol->setEnabled(1);
+    ui->butStopProtocol->setEnabled(1);
+    ui->butUpdateProtocol->setEnabled(1);
+    ui->butConfirmSettings->setDisabled(1);
+    ui->spinSegTime->setMaximum(30); // # 30 minutes maximum time; limit of pump pause?
+
+    // Maybe add logic to update segments if segments are changed!
+
+
     //this->ui->spin_start_conc->setMaximum(max(this->ui->spin_pac->value(), this->ui->spin_pbc->value()));
     //this->ui->spin_end_conc->setMaximum(max(this->ui->spin_pac->value(), this->ui->spin_pbc->value()));
     //this->protocol->set_dt(1) // # Locked to 1s for conductivity meter;
@@ -152,26 +171,56 @@ void PumpController::confirmSettings()
 
 void PumpController::settingsChanged()
 {
+
+    ui->butConfirmSettings->setEnabled(1);
+    ui->butConfirmSettings->setStyleSheet(ui->butResetCond->styleSheet());
+    ui->butConfirmSettings->setText("Confirm");
+    ui->spinStraightConc->setDisabled(1);
+    ui->butStartPump->setDisabled(1);
+    ui->butUpdatePump->setDisabled(1);
+    ui->butStopPump->setDisabled(1);
+    ui->spinSegTime->setDisabled(1);
+    ui->spinStartConc->setDisabled(1);
+    ui->spinEndConc->setDisabled(1);
+    ui->butAddSegment->setDisabled(1);
+    ui->butClearSegments->setDisabled(1);
+    ui->tableSegments->setDisabled(1);
+    ui->butStartProtocol->setDisabled(1);
+    ui->butStopProtocol->setDisabled(1);
+    ui->butUpdateProtocol->setDisabled(1);
+
     //this>port = None
     //this.pumps = None
     //this->cond_timer->stop();
     //this->record_cond=0;
-    this->ui->but_confirm_settings->setEnabled(1);
-    this->ui->but_confirm_settings->setStyleSheet(this->ui->but_reset_cond->styleSheet());
-    this->ui->but_confirm_settings->setText("Confirm");
-    this->ui->spin_straight_conc->setDisabled(1);
-    this->ui->but_start_pump->setDisabled(1);
-    this->ui->but_update_pump->setDisabled(1);
-    this->ui->but_stop_pump->setDisabled(1);
-    this->ui->spin_seg_time->setDisabled(1);
-    this->ui->spin_start_conc->setDisabled(1);
-    this->ui->spin_end_conc->setDisabled(1);
-    this->ui->but_add_segment->setDisabled(1);
-    this->ui->but_clear_segments->setDisabled(1);
-    this->ui->table_segments->setDisabled(1);
-    this->ui->but_start_protocol->setDisabled(1);
-    this->ui->but_stop_protocol->setDisabled(1);
-    this->ui->but_update_protocol->setDisabled(1);
 
 }
+
+
+// SEGMENT SLOTS
+
+void PumpController::addSegment()
+{
+
+}
+
+void PumpController::rmSegment()
+{
+    if (! ui->tableSegments->selectionModel()->selectedRows().isEmpty())
+    {
+        // Cast model to TableModel
+        TableModel *model = qobject_cast<TableModel*>(ui->tableSegments->model());
+
+        if (model) {
+            // Call the removeSegment method on your custom model
+            model->removeSegment(ui->tableSegments->selectionModel()->selectedRows().first().row());
+        } else {
+            qWarning() << "Failed to cast model to TableModel";
+        }
+        //this->writeToConsole("Deleting segment: " + this->ui->tableSegments->selectionModel()->selectedRows().first().row() )
+    }
+}
+
+void PumpController::clearSegments()
+{}
 

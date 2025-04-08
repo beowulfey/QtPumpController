@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>806</width>
-    <height>659</height>
+    <height>670</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -58,7 +58,7 @@
          <item>
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="4" column="1">
-            <widget class="QSpinBox" name="spin_pbc">
+            <widget class="QSpinBox" name="spinPbc">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -91,7 +91,7 @@
             </widget>
            </item>
            <item row="5" column="1">
-            <widget class="QPushButton" name="but_confirm_settings">
+            <widget class="QPushButton" name="butConfirmSettings">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -104,7 +104,7 @@
             </widget>
            </item>
            <item row="3" column="1">
-            <widget class="QSpinBox" name="spin_pac">
+            <widget class="QSpinBox" name="spinPac">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -137,7 +137,7 @@
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QDoubleSpinBox" name="spin_flow_rate">
+            <widget class="QDoubleSpinBox" name="spinFlowRate">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -147,7 +147,7 @@
             </widget>
            </item>
            <item row="5" column="0">
-            <widget class="QPushButton" name="but_set_coms">
+            <widget class="QPushButton" name="butSetComs">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -184,7 +184,7 @@
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QSpinBox" name="spin_straight_conc">
+            <widget class="QSpinBox" name="spinStraightConc">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -196,7 +196,7 @@
            <item row="3" column="0" colspan="2">
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
-              <widget class="QPushButton" name="but_start_pump">
+              <widget class="QPushButton" name="butStartPump">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -209,7 +209,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="but_update_pump">
+              <widget class="QPushButton" name="butUpdatePump">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -222,7 +222,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="but_stop_pump">
+              <widget class="QPushButton" name="butStopPump">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                  <horstretch>0</horstretch>
@@ -255,7 +255,7 @@
          <item>
           <layout class="QGridLayout" name="gridLayout_7">
            <item row="0" column="4">
-            <widget class="QPushButton" name="but_reset_cond">
+            <widget class="QPushButton" name="butResetCond">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -268,7 +268,7 @@
             </widget>
            </item>
            <item row="3" column="0" rowspan="2">
-            <widget class="QPushButton" name="but_set_cond_min">
+            <widget class="QPushButton" name="butSetCondMin">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
                <horstretch>0</horstretch>
@@ -294,7 +294,7 @@
             </widget>
            </item>
            <item row="1" column="0" rowspan="2">
-            <widget class="QPushButton" name="but_set_cond_max">
+            <widget class="QPushButton" name="butSetCondMax">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -357,7 +357,7 @@
           </layout>
          </item>
          <item>
-          <widget class="PlotWidget" name="widget_plot_cond" native="true">
+          <widget class="PlotWidget" name="widgetPlotCond" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -433,21 +433,21 @@
             </widget>
            </item>
            <item row="5" column="4">
-            <widget class="QPushButton" name="but_delete_segment">
+            <widget class="QPushButton" name="butDeleteSegment">
              <property name="text">
               <string>Delete</string>
              </property>
             </widget>
            </item>
            <item row="5" column="0" colspan="3">
-            <widget class="QPushButton" name="but_add_segment">
+            <widget class="QPushButton" name="butAddSegment">
              <property name="text">
               <string>Add Segment</string>
              </property>
             </widget>
            </item>
            <item row="1" column="2">
-            <widget class="QDoubleSpinBox" name="spin_seg_time">
+            <widget class="QDoubleSpinBox" name="spinSegTime">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -466,7 +466,7 @@
             </widget>
            </item>
            <item row="2" column="2">
-            <widget class="QSpinBox" name="spin_start_conc">
+            <widget class="QSpinBox" name="spinStartConc">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -479,14 +479,14 @@
             </widget>
            </item>
            <item row="5" column="5">
-            <widget class="QPushButton" name="but_clear_segments">
+            <widget class="QPushButton" name="butClearSegments">
              <property name="text">
               <string>Clear All</string>
              </property>
             </widget>
            </item>
            <item row="3" column="2">
-            <widget class="QSpinBox" name="spin_end_conc">
+            <widget class="QSpinBox" name="spinEndConc">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -506,7 +506,7 @@
             </widget>
            </item>
            <item row="1" column="4" rowspan="4" colspan="2">
-            <widget class="QTableView" name="table_segments">
+            <widget class="QTableView" name="tableSegments">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                <horstretch>0</horstretch>
@@ -605,21 +605,21 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_3">
            <item>
-            <widget class="QPushButton" name="but_start_protocol">
+            <widget class="QPushButton" name="butStartProtocol">
              <property name="text">
               <string>Start</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="but_update_protocol">
+            <widget class="QPushButton" name="butUpdateProtocol">
              <property name="text">
               <string>Update</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="but_stop_protocol">
+            <widget class="QPushButton" name="butStopProtocol">
              <property name="text">
               <string>Stop</string>
              </property>
@@ -653,6 +653,13 @@
         <height>50</height>
        </size>
       </property>
+      <property name="font">
+       <font>
+        <family>.AppleSystemUIFont</family>
+        <pointsize>13</pointsize>
+        <bold>false</bold>
+       </font>
+      </property>
       <property name="acceptDrops">
        <bool>false</bool>
       </property>
@@ -681,19 +688,19 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>spin_flow_rate</tabstop>
-  <tabstop>spin_pac</tabstop>
-  <tabstop>spin_pbc</tabstop>
-  <tabstop>but_confirm_settings</tabstop>
-  <tabstop>spin_straight_conc</tabstop>
-  <tabstop>but_start_pump</tabstop>
-  <tabstop>but_update_pump</tabstop>
-  <tabstop>but_stop_pump</tabstop>
-  <tabstop>spin_seg_time</tabstop>
-  <tabstop>spin_start_conc</tabstop>
-  <tabstop>spin_end_conc</tabstop>
-  <tabstop>but_start_protocol</tabstop>
-  <tabstop>but_stop_protocol</tabstop>
+  <tabstop>spinFlowRate</tabstop>
+  <tabstop>spinPac</tabstop>
+  <tabstop>spinPbc</tabstop>
+  <tabstop>butConfirmSettings</tabstop>
+  <tabstop>spinStraightConc</tabstop>
+  <tabstop>butStartPump</tabstop>
+  <tabstop>butUpdatePump</tabstop>
+  <tabstop>butStopPump</tabstop>
+  <tabstop>spinSegTime</tabstop>
+  <tabstop>spinStartConc</tabstop>
+  <tabstop>spinEndConc</tabstop>
+  <tabstop>butStartProtocol</tabstop>
+  <tabstop>butStopProtocol</tabstop>
  </tabstops>
  <resources/>
  <connections/>
