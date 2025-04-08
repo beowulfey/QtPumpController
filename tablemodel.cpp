@@ -52,10 +52,13 @@ bool TableModel::removeRows(int position, int rows, const QModelIndex& parent) {
     return true;
 }
 
-void TableModel::addSegment(const std::vector<QString>& segment) {
-    if (segment.size() != columnHeaders.size()) return;
+void TableModel::addSegment(double timeMinutes, int startConc, int endConc) {
     beginInsertRows(QModelIndex(), static_cast<int>(tableData.size()), static_cast<int>(tableData.size()));
-    tableData.push_back(segment);
+    std::vector<QString> row;
+    row.push_back(QString::number(timeMinutes));
+    row.push_back(QString::number(startConc));
+    row.push_back(QString::number(endConc));
+    tableData.push_back(row);
     endInsertRows();
 }
 

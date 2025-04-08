@@ -201,6 +201,12 @@ void PumpController::settingsChanged()
 
 void PumpController::addSegment()
 {
+    if (ui->spinSegTime->value() > 0){
+        TableModel *model = qobject_cast<TableModel*>(ui->tableSegments->model());
+        if (model) {
+            model->addSegment(ui->spinSegTime->value(), ui->spinStartConc->value(), ui->spinEndConc->value());
+        }
+    }
 
 }
 
@@ -208,11 +214,9 @@ void PumpController::rmSegment()
 {
     if (! ui->tableSegments->selectionModel()->selectedRows().isEmpty())
     {
-        // Cast model to TableModel
         TableModel *model = qobject_cast<TableModel*>(ui->tableSegments->model());
 
         if (model) {
-            // Call the removeSegment method on your custom model
             model->removeSegment(ui->tableSegments->selectionModel()->selectedRows().first().row());
         } else {
             qWarning() << "Failed to cast model to TableModel";
