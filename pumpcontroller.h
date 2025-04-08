@@ -26,6 +26,7 @@ public slots:
     void setCOMs(const QString& cond, const QString& pump);
     void confirmSettings();
     void settingsChanged();
+    //void timerTick();
 
 
 
@@ -44,7 +45,7 @@ public slots:
     //void saveLog();
     //void saveCond();
     //void startProtocol();
-    //void timerTick();
+
     //void stopProtocol();
     //void addSegment();
     //void rmSegment();

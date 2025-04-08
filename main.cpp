@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     lightPalette.setColor(QPalette::Highlight, QColor(0, 120, 215));
     lightPalette.setColor(QPalette::HighlightedText, Qt::white);
 
-    a.setPalette(lightPalette);
+    //a.setPalette(lightPalette);
     PumpController w;
     w.show();
     return a.exec();

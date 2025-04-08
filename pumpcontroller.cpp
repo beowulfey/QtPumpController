@@ -35,15 +35,20 @@ PumpController::PumpController(QWidget *parent)
     this->ui->but_update_protocol->setDisabled(1);
     this->ui->table_segments->resizeColumnsToContents();
 
-    // Signals to slots
+    // SIGNALS TO SLOTS
+    // These are for UX, disabling/enabling to encourage order of operations. Can't start protocols until settings are confirmed.
     connect(this->ui->but_confirm_settings, &QPushButton::clicked, this, &PumpController::confirmSettings);
     connect(this->ui->but_set_coms, &QPushButton::clicked, this, &PumpController::openCOMsDialog);
+    connect(this->ui->spin_flow_rate, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &PumpController::settingsChanged);
+    connect(this->ui->spin_pac, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &PumpController::settingsChanged);
+    connect(this->ui->spin_pbc, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &PumpController::settingsChanged);
+    connect(this->ui->but_confirm_settings, &QPushButton::clicked, this, &PumpController::confirmSettings);
 
-    //connect(this->ui->spin_flow_rate, QOverload<int>::of(&QSpinBox::valueChanged), this, &PumpController::settings_changed);
-    //connect(this->ui->spin_pac, QOverload<int>::of(&QSpinBox::valueChanged), this, &PumpController::settings_changed);
-    //connect(this->ui->spin_pbc, QOverload<int>::of(&QSpinBox::valueChanged), this, &PumpController::settings_changed);
-    //// connect(this->ui->spin_refresh, QOverload<int>::of(&QSpinBox::valueChanged), this, &PumpController::settings_changed);
-    //connect(this->ui->but_confirm_settings, &QPushButton::clicked, this, &PumpController::confirm_settings);
+    // Run timers, for protocol stuff
+    //connect(&this->int_timer, &QTimer::timeout, this, &PumpController::timer_tick);
+    //connect(&this->cond_timer, &QTimer::timeout, this, &PumpController::cond_timer_tick);
+    //connect(&this->run_timer, &QTimer::timeout, this, &PumpController::stop_record_cond);
+
     //connect(this->ui->but_start_pump, &QPushButton::clicked, this, &PumpController::start_pump);
     //connect(this->ui->but_stop_pump, &QPushButton::clicked, this, &PumpController::stop_pump);
     //connect(this->ui->but_update_pump, &QPushButton::clicked, this, &PumpController::update_pump);
@@ -51,10 +56,9 @@ PumpController::PumpController(QWidget *parent)
     //connect(this->ui->but_clear_segments, &QPushButton::clicked, this, &PumpController::clear_segments);
     //connect(this->ui->but_start_protocol, &QPushButton::clicked, this, &PumpController::start_protocol);
     //connect(this->ui->but_stop_protocol, &QPushButton::clicked, this, &PumpController::stop_protocol);
-    //connect(&this->int_timer, &QTimer::timeout, this, &PumpController::timer_tick);
-    //connect(&this->cond_timer, &QTimer::timeout, this, &PumpController::cond_timer_tick);
+
     //connect(this->ui->but_update_protocol, &QPushButton::clicked, this, &PumpController::update_protocol);
-    //connect(&this->run_timer, &QTimer::timeout, this, &PumpController::stop_record_cond);
+
 
     //connect(this->ui->but_delete_segment, &QPushButton::clicked, this, &PumpController::rm_segment);
     //connect(this->ui->but_set_cond_min, &QPushButton::clicked, this, &PumpController::set_cond_min);
@@ -116,6 +120,7 @@ void PumpController::confirmSettings()
 {
     //this->write_to_console(f"{datetime->strftime(datetime->now(), FMT)} PUMP SETTINGS CONFIRMED:", color=GREEN)
     //this->write_to_console(f"{datetime->strftime(datetime->now(), FMT)} Flow Rate: {this->ui->spin_flow_rate->value()}; PAC: {this->ui->spin_pac->value()}; PBC: {this->ui->spin_pbc->value()}", color=GREEN)
+    this->settingsChanged();
     this->ui->but_confirm_settings->setStyleSheet("QPushButton { color: green;}");
     this->ui->but_confirm_settings->setText("Confirmed");
     this->ui->spin_straight_conc->setEnabled(1);
