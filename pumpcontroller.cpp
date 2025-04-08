@@ -13,18 +13,22 @@ PumpController::PumpController(QWidget *parent)
     ui->setupUi(this);
     this->setWindowTitle(QString("Pump Controller"));
 
+    //Table model setup
     tableModel = new TableModel(this);
     ui->tableSegments->setModel(tableModel);
     ui->tableSegments->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->tableSegments->setSelectionBehavior(QAbstractItemView::SelectRows);
-
+    ui->tableSegments->setDragEnabled(true);
+    ui->tableSegments->setAcceptDrops(true);
+    ui->tableSegments->setDropIndicatorShown(true);
+    ui->tableSegments->setDragDropMode(QAbstractItemView::InternalMove);
 
 
 
     // Set default settings for everything
     ui->spinFlowRate->setValue(0.4);
     ui->spinPac->setValue(0);
-    ui->spinPbc->setValue(100);
+    ui->spinPbc->setValue(125);
 
     // Disable everything before confirmation
     ui->spinStraightConc->setDisabled(1);
@@ -206,6 +210,11 @@ void PumpController::addSegment()
         if (model) {
             model->addSegment(ui->spinSegTime->value(), ui->spinStartConc->value(), ui->spinEndConc->value());
         }
+        ui->spinSegTime->setValue(0.00);
+        ui->spinStartConc->setValue(0);
+        ui->spinEndConc->setValue(0);
+    } else {
+        writeToConsole("You can't add a segment zero minutes long...", UiYellow);
     }
 
 }
@@ -226,5 +235,13 @@ void PumpController::rmSegment()
 }
 
 void PumpController::clearSegments()
-{}
+{
+    TableModel *model = qobject_cast<TableModel*>(ui->tableSegments->model());
+
+    if (model) {
+        model->clearSegments();
+    } else {
+        qWarning() << "Failed to cast model to TableModel";
+    }
+}
 

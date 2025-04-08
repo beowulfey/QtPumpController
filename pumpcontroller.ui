@@ -400,6 +400,12 @@
            </property>
            <item row="0" column="0" colspan="3">
             <widget class="QLabel" name="label_18">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="font">
               <font>
                <family>.AppleSystemUIFont</family>
@@ -520,19 +526,25 @@
               </size>
              </property>
              <property name="sizeAdjustPolicy">
-              <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustIgnored</enum>
+              <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
              </property>
              <property name="editTriggers">
               <set>QAbstractItemView::EditTrigger::SelectedClicked</set>
              </property>
-             <property name="showDropIndicator" stdset="0">
+             <property name="tabKeyNavigation">
               <bool>false</bool>
+             </property>
+             <property name="showDropIndicator" stdset="0">
+              <bool>true</bool>
              </property>
              <property name="dragEnabled">
-              <bool>false</bool>
+              <bool>true</bool>
              </property>
              <property name="dragDropMode">
-              <enum>QAbstractItemView::DragDropMode::NoDragDrop</enum>
+              <enum>QAbstractItemView::DragDropMode::InternalMove</enum>
+             </property>
+             <property name="defaultDropAction">
+              <enum>Qt::DropAction::MoveAction</enum>
              </property>
              <property name="alternatingRowColors">
               <bool>true</bool>

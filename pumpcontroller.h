@@ -63,6 +63,7 @@ private:
     Ui::PumpController *ui;
     QColor UiGreen = QColorConstants::Svg::mediumseagreen;
     QColor UiRed = QColorConstants::Svg::indianred;
+    QColor UiYellow = QColorConstants::Svg::goldenrod;
     QString pumpComPort;
     QString condComPort;
     float offset;

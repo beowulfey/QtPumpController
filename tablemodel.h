@@ -27,6 +27,9 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 
     bool insertRows(int row, int count, const QModelIndex& parent = QModelIndex()) override;
+    bool moveRows(const QModelIndex &sourceParent, int sourceRow, int count,
+                  const QModelIndex &destinationParent, int destinationChild) override;
+
     bool removeRows(int position, int rows, const QModelIndex& parent = QModelIndex()) override;
 
     void addSegment(double timeMinutes, int startConc, int endConc);

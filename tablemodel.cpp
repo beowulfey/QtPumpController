@@ -1,5 +1,7 @@
 // tablemodel.cpp
 #include "tablemodel.h"
+#include <QMimeData>
+#include <QIODevice>
 
 TableModel::TableModel(QObject* parent)
     : QAbstractTableModel(parent),
@@ -44,6 +46,31 @@ bool TableModel::insertRows(int row, int count, const QModelIndex& parent) {
     return true;
 }
 
+bool TableModel::moveRows(const QModelIndex &sourceParent, int sourceRow, int count,
+                          const QModelIndex &destinationParent, int destinationChild) {
+    if (sourceRow < 0 || destinationChild < 0 ||
+        sourceRow >= static_cast<int>(tableData.size()) ||
+        destinationChild > static_cast<int>(tableData.size()) ||
+        sourceRow == destinationChild || count != 1) {
+        return false;
+    }
+
+    beginMoveRows(sourceParent, sourceRow, sourceRow, destinationParent, destinationChild);
+
+    auto movedRow = tableData[sourceRow];
+    tableData.erase(tableData.begin() + sourceRow);
+
+    // adjust destination index if it follows the removed row
+    if (destinationChild > sourceRow)
+        destinationChild -= 1;
+
+    tableData.insert(tableData.begin() + destinationChild, movedRow);
+
+    endMoveRows();
+    return true;
+}
+
+
 bool TableModel::removeRows(int position, int rows, const QModelIndex& parent) {
     if (position < 0 || position + rows > static_cast<int>(tableData.size())) return false;
     beginRemoveRows(parent, position, position + rows - 1);
@@ -51,6 +78,10 @@ bool TableModel::removeRows(int position, int rows, const QModelIndex& parent) {
     endRemoveRows();
     return true;
 }
+
+
+
+
 
 void TableModel::addSegment(double timeMinutes, int startConc, int endConc) {
     beginInsertRows(QModelIndex(), static_cast<int>(tableData.size()), static_cast<int>(tableData.size()));
