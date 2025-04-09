@@ -34,6 +34,8 @@ public slots:
     void rmSegment();
     void clearSegments();
 
+    void updateProtocol();
+
    // void timerTick();
 
     //void timerTick();

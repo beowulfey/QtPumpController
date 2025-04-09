@@ -85,6 +85,8 @@ PumpController::PumpController(QWidget *parent)
         }
     });
 
+    connect(tableModel, &TableModel::segmentsChanged, this, &PumpController::updateProtocol);
+
     // Run timers, for protocol stuff
     //connect(&this->int_timer, &QTimer::timeout, this, &PumpController::timer_tick);
     //connect(&this->cond_timer, &QTimer::timeout, this, &PumpController::cond_timer_tick);
@@ -237,22 +239,14 @@ void PumpController::addSegment()
         QModelIndexList selected = ui->tableSegments->selectionModel()->selectedRows();
         if (!selected.isEmpty()) {
             row = selected.first().row()+1;
+
         }
-        TableModel *model = qobject_cast<TableModel*>(ui->tableSegments->model());
-        if (model) {
-            model->addSegment(ui->spinSegTime->value(), ui->spinStartConc->value(), ui->spinEndConc->value(), row);
-            currProtocol->generate(model->getSegments());
-            //qDebug()<<currProtocol->xvals()<<"Ys"<<currProtocol->yvals();
-            ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
-        }
+        tableModel->addSegment(ui->spinSegTime->value(), ui->spinStartConc->value(), ui->spinEndConc->value(), row);
         ui->spinSegTime->setValue(0.00);
         ui->spinStartConc->setValue(0);
         ui->spinEndConc->setValue(0);
         ui->tableSegments->selectionModel()->clearSelection();
-
-
-        // generate data
-        // send to plot
+        qDebug()<<tableModel->getSegments();
 
     } else {
         writeToConsole("You can't add a segment zero minutes long...", UiYellow);
@@ -264,29 +258,17 @@ void PumpController::rmSegment()
 {
     if (! ui->tableSegments->selectionModel()->selectedRows().isEmpty())
     {
-        TableModel *model = qobject_cast<TableModel*>(ui->tableSegments->model());
-
-        if (model) {
-            model->removeSegment(ui->tableSegments->selectionModel()->selectedRows().first().row());
-            currProtocol->generate(model->getSegments());
-            ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
-        } else {
-            qWarning() << "Failed to cast model to TableModel";
-        }
-        //this->writeToConsole("Deleting segment: " + this->ui->tableSegments->selectionModel()->selectedRows().first().row() )
+        tableModel->removeSegment(ui->tableSegments->selectionModel()->selectedRows().first().row());
     }
 }
 
 void PumpController::clearSegments()
 {
-    TableModel *model = qobject_cast<TableModel*>(ui->tableSegments->model());
-
-    if (model) {
-        model->clearSegments();
-        currProtocol->generate(model->getSegments());
-        ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
-    } else {
-        qWarning() << "Failed to cast model to TableModel";
-    }
+    tableModel->clearSegments();
 }
 
+void PumpController::updateProtocol()
+{
+    currProtocol->generate(tableModel->getSegments());
+    ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
+}

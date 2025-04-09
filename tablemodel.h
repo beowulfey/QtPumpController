@@ -35,6 +35,10 @@ public:
     QVector<QVector<double>> getSegments() const;
     void clearSegments();
 
+signals:
+
+    void segmentsChanged();
+
 private:
     QList<QString> columnHeaders;
     QList<QList<QString>> tableData;

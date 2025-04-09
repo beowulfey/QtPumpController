@@ -95,6 +95,7 @@ void TableModel::addSegment(double timeMinutes, int startConc, int endConc, int 
     row.push_back(QString::number(endConc));
     tableData.insert(tableData.begin() + insertRow, row);
     endInsertRows();
+    emit segmentsChanged();
 }
 
 void TableModel::removeSegment(int pos) {
@@ -105,6 +106,7 @@ void TableModel::removeSegment(int pos) {
     beginRemoveRows(QModelIndex(), pos, pos);
     tableData.erase(tableData.begin() + pos);
     endRemoveRows();
+    emit segmentsChanged();
 }
 
 QVector<QVector<double>> TableModel::getSegments() const {
@@ -127,4 +129,5 @@ void TableModel::clearSegments() {
     beginResetModel();
     tableData.clear();
     endResetModel();
+    emit segmentsChanged();
 }
