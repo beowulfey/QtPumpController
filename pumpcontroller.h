@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QList>
 #include "tablemodel.h"
+#include "protocol.h"
 
 //#include "pump.h"
 
@@ -23,6 +24,7 @@ public:
 
 public slots:
     void writeToConsole(const QString& text, const QColor& color = Qt::black);
+
     void openCOMsDialog();
     void setCOMs(const QString& cond, const QString& pump);
     void confirmSettings();
@@ -31,11 +33,12 @@ public slots:
     void addSegment();
     void rmSegment();
     void clearSegments();
+
+   // void timerTick();
+
     //void timerTick();
 
 
-
-    //void writeToConsole();
     //void resetPumps();
     //void updatePumps();
     //void startPump();
@@ -61,13 +64,15 @@ public slots:
 
 private:
     Ui::PumpController *ui;
-    QColor UiGreen = QColorConstants::Svg::mediumseagreen;
-    QColor UiRed = QColorConstants::Svg::indianred;
-    QColor UiYellow = QColorConstants::Svg::goldenrod;
+
     QString pumpComPort;
     QString condComPort;
     float offset;
     TableModel *tableModel;
+    QTimer *runTimer;
+    QTimer *intervalTimer;
+    QTimer *condTimer;
+    Protocol *currProtocol;
     //QList<Pump> pumpList;
 };
 #endif // PUMPCONTROLLER_H

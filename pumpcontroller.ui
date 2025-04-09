@@ -357,7 +357,7 @@
           </layout>
          </item>
          <item>
-          <widget class="PlotWidget" name="widgetPlotCond" native="true">
+          <widget class="PlotWidget" name="condPlot" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>
@@ -608,7 +608,7 @@
           </widget>
          </item>
          <item>
-          <widget class="PlotWidget" name="widget_plots" native="true">
+          <widget class="PlotWidget" name="protocolPlot" native="true">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
              <horstretch>0</horstretch>

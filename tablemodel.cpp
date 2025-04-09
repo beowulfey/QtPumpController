@@ -40,7 +40,7 @@ QVariant TableModel::headerData(int section, Qt::Orientation orientation, int ro
 bool TableModel::insertRows(int row, int count, const QModelIndex& parent) {
     beginInsertRows(parent, row, row + count - 1);
     for (int i = 0; i < count; ++i) {
-        tableData.insert(tableData.begin() + row, std::vector<QString>(columnHeaders.size(), "<empty>"));
+        tableData.insert(tableData.begin() + row, QVector<QString>(columnHeaders.size(), "<empty>"));
     }
     endInsertRows();
     return true;
@@ -89,7 +89,7 @@ void TableModel::addSegment(double timeMinutes, int startConc, int endConc, int 
         insertRow = static_cast<int>(tableData.size());
 
     beginInsertRows(QModelIndex(), insertRow, insertRow);
-    std::vector<QString> row;
+    QVector<QString> row;
     row.push_back(QString::number(timeMinutes));
     row.push_back(QString::number(startConc));
     row.push_back(QString::number(endConc));
@@ -107,8 +107,20 @@ void TableModel::removeSegment(int pos) {
     endRemoveRows();
 }
 
-std::vector<std::vector<QString>> TableModel::getSegments() const {
-    return tableData;
+QVector<QVector<double>> TableModel::getSegments() const {
+    QVector<QVector<double>> numericSegments;
+
+    for (const auto& row : tableData) {
+        QVector<double> numericRow;
+        for (const auto& cell : row) {
+            bool ok;
+            double val = cell.toDouble(&ok);
+            numericRow.push_back(ok ? val : 0.0);  // Optionally handle invalid values
+        }
+        numericSegments.push_back(numericRow);
+    }
+
+    return numericSegments;
 }
 
 void TableModel::clearSegments() {

@@ -22,8 +22,6 @@ public:
     void setStart(double time);
     double getStart() const;
     void setStop();
-
-public slots:
     void setData(QVector<double> xVals, QVector<double> yVals);
     void appendData(double x, double y);
     void onChange();

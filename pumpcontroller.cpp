@@ -1,6 +1,7 @@
 #include "pumpcontroller.h"
 #include "ui_pumpcontroller.h"
 #include "comsdialog.h"
+#include "theming.h"
 
 PumpController::PumpController(QWidget *parent)
     : QMainWindow(parent),
@@ -13,7 +14,7 @@ PumpController::PumpController(QWidget *parent)
     ui->setupUi(this);
     this->setWindowTitle(QString("Pump Controller"));
 
-    //Table model setup
+    // Table model setup
     tableModel = new TableModel(this);
     QHeaderView* header=ui->tableSegments->verticalHeader();
     header->setDefaultSectionSize(20); // 20 px height
@@ -23,7 +24,17 @@ PumpController::PumpController(QWidget *parent)
     ui->tableSegments->setSelectionMode(QAbstractItemView::NoSelection);
     ui->tableSegments->setSelectionBehavior(QAbstractItemView::SelectRows);
 
+    // Timer stuff
+    runTimer = new QTimer(this);
+    runTimer->setSingleShot(1);
 
+    intervalTimer = new QTimer(this);
+    intervalTimer->setSingleShot(0);
+
+    condTimer = new QTimer(this);
+    condTimer->setSingleShot(0);
+
+    currProtocol = new Protocol(this);
 
 
     // Set default settings for everything
@@ -94,6 +105,7 @@ PumpController::PumpController(QWidget *parent)
     //connect(this->ui->but_set_cond_max, &QPushButton::clicked, this, &PumpController::set_cond_max);
     //connect(this->ui->but_reset_cond, &QPushButton::clicked, this, &PumpController::reset_cond);
 
+    writeToConsole("Welcome to Pump Controller v. "+QString::number(VERSION_MAJOR)+"."+QString::number(VERSION_MINOR)+"."+QString::number(VERSION_BUILD)+"!");
 }
 
 PumpController::~PumpController()
@@ -229,11 +241,19 @@ void PumpController::addSegment()
         TableModel *model = qobject_cast<TableModel*>(ui->tableSegments->model());
         if (model) {
             model->addSegment(ui->spinSegTime->value(), ui->spinStartConc->value(), ui->spinEndConc->value(), row);
+            currProtocol->generate(model->getSegments());
+            qDebug()<<currProtocol->xvals()<<"Ys"<<currProtocol->yvals();
+            ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
         }
         ui->spinSegTime->setValue(0.00);
         ui->spinStartConc->setValue(0);
         ui->spinEndConc->setValue(0);
         ui->tableSegments->selectionModel()->clearSelection();
+
+
+        // generate data
+        // send to plot
+
     } else {
         writeToConsole("You can't add a segment zero minutes long...", UiYellow);
     }

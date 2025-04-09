@@ -3,16 +3,14 @@
 
 #pragma once
 
-#include <QAbstractTableModel>
+//#include <QAbstractTableModel>
 #include <QModelIndex>
-#include <QString>
-#include <QVariant>
-#include <QVector>
-#include <QStringList>
-#include <QHash>
-#include <QByteArray>
-
-#include <vector>
+//#include <QString>
+//#include <QVariant>
+//#include <QVector>
+//#include <QStringList>
+//#include <QHash>
+//#include <QByteArray>
 
 
 class TableModel : public QAbstractTableModel {
@@ -34,12 +32,12 @@ public:
 
     void addSegment(double timeMinutes, int startConc, int endConc, int insertRow);
     void removeSegment(int pos = -1);
-    std::vector<std::vector<QString>> getSegments() const;
+    QVector<QVector<double>> getSegments() const;
     void clearSegments();
 
 private:
-    std::vector<QString> columnHeaders;
-    std::vector<std::vector<QString>> tableData;
+    QList<QString> columnHeaders;
+    QList<QList<QString>> tableData;
 };
 
 #endif // TABLEMODEL_H

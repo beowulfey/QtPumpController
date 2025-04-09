@@ -13,6 +13,7 @@ SOURCES += \
     condmeter.cpp \
     main.cpp \
     plotwidget.cpp \
+    protocol.cpp \
     pump.cpp \
     pumpcontroller.cpp \
     $$PWD/libs/qcustomplot/qcustomplot.cpp \
@@ -22,10 +23,12 @@ HEADERS += \
     comsdialog.h \
     condmeter.h \
     plotwidget.h \
+    protocol.h \
     pump.h \
     pumpcontroller.h \
     $$PWD/libs/qcustomplot/qcustomplot.h \
-    tablemodel.h
+    tablemodel.h \
+    theming.h
 
 FORMS += \
     pumpcontroller.ui \
@@ -35,3 +38,14 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+VERSION_MAJOR = 0
+VERSION_MINOR = 1
+VERSION_BUILD = 0
+
+DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
+       "VERSION_MINOR=$$VERSION_MINOR"\
+       "VERSION_BUILD=$$VERSION_BUILD"
+
+#Target version
+VERSION = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_BUILD}
