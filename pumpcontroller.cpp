@@ -242,7 +242,7 @@ void PumpController::addSegment()
         if (model) {
             model->addSegment(ui->spinSegTime->value(), ui->spinStartConc->value(), ui->spinEndConc->value(), row);
             currProtocol->generate(model->getSegments());
-            qDebug()<<currProtocol->xvals()<<"Ys"<<currProtocol->yvals();
+            //qDebug()<<currProtocol->xvals()<<"Ys"<<currProtocol->yvals();
             ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
         }
         ui->spinSegTime->setValue(0.00);
@@ -268,6 +268,8 @@ void PumpController::rmSegment()
 
         if (model) {
             model->removeSegment(ui->tableSegments->selectionModel()->selectedRows().first().row());
+            currProtocol->generate(model->getSegments());
+            ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
         } else {
             qWarning() << "Failed to cast model to TableModel";
         }
@@ -281,6 +283,8 @@ void PumpController::clearSegments()
 
     if (model) {
         model->clearSegments();
+        currProtocol->generate(model->getSegments());
+        ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
     } else {
         qWarning() << "Failed to cast model to TableModel";
     }
