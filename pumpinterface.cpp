@@ -28,6 +28,8 @@ bool PumpInterface::openPort(const QString &portName, qint32 baudRate) {
     }
 
     qDebug() << serial->portName();
+    sendCommand(PumpA, BasicCommand::GetVersion);
+    sendCommand(PumpB, BasicCommand::GetVersion);
     return true;
 }
 
@@ -37,13 +39,13 @@ void PumpInterface::closePort() {
     }
 }
 
-bool PumpInterface::sendCommand(BasicCommand cmd, double value) {
+bool PumpInterface::sendCommand(int addr, BasicCommand cmd, double value) {
     if (!serial->isOpen()) {
         emit errorOccurred("Serial port not open.");
         return false;
     }
 
-    QByteArray packet = buildCommand(cmd, value);
+    QByteArray packet = addr + buildCommand(cmd, value);
     qint64 bytesWritten = serial->write(packet);
     return bytesWritten == packet.size();
 }
@@ -68,7 +70,7 @@ QByteArray PumpInterface::buildCommand(BasicCommand cmd, double value) {
         payload = "STATUS";
         break;
     case BasicCommand::GetVersion:
-        payload = "VERSION";
+        payload = "VER";
         break;
     }
 

@@ -28,7 +28,7 @@ public:
 
     Q_ENUM(BasicCommand)  // Allows use with signals/slots and Qt Designer
 
-    bool sendCommand(BasicCommand cmd, double value = 0.0);
+    bool sendCommand(int addr, BasicCommand cmd, double value = 0.0);
 
 signals:
     void dataReceived(const QByteArray &data);
@@ -39,6 +39,8 @@ private slots:
     void handleError(QSerialPort::SerialPortError error);
 
 private:
+    int PumpA = 0;
+    int PumpB = 1;
     QSerialPort *serial;
     const char startByte = 0x02;
     const char endByte = 0x03;

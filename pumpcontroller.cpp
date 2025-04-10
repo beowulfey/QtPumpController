@@ -249,6 +249,7 @@ void PumpController::initiatePumps()
         pumps = new PumpInterface(this);
         pumps->openPort(pumpComPort);
         connect(pumps, &PumpInterface::errorOccurred, this, &PumpController::receivePumpError);
+        connect(pumps, &PumpInterface::dataReceived, this, &PumpController::receivePumpError);
     }
 }
 
