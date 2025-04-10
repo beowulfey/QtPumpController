@@ -2,7 +2,7 @@
 #include "theming.h"
 
 PlotWidget::PlotWidget(QWidget *parent)
-    : QWidget(parent), _x(0), ybot(0), ytop(10), runStart(0) {
+    : QWidget(parent), _x(0), yBot(0), yTop(100), runStart(0) {
 
     // Initialize the plot
     plot = new QCustomPlot(this);
@@ -18,6 +18,7 @@ PlotWidget::PlotWidget(QWidget *parent)
 
     plot->xAxis->setTickLabelFont(QFont("Arial", 12));
     plot->yAxis->setTickLabelFont(QFont("Arial", 12));
+
 
     // Set layout
     QVBoxLayout *layout = new QVBoxLayout();
@@ -36,9 +37,9 @@ double PlotWidget::x() const {
     return _x;
 }
 
-void PlotWidget::setYAxis(double bot, double top) {
-    ybot = bot;
-    ytop = top;
+void PlotWidget::setYAxis(int pac, int pbc) {
+    yBot = std::min(pac, pbc);
+    yTop = std::max(pac, pbc);
     onChange();
 }
 
@@ -80,7 +81,7 @@ void PlotWidget::onChange() {
 
     // Dynamic x/y range setup
     double xMin = 0.0, xMax = 10.0;
-    double yMin = 0.0, yMax = 1.0;
+    //double yMin = 0.0, yMax = 1.0;
 
     if (!xData.isEmpty()) {
         auto xMinMax = std::minmax_element(xData.constBegin(), xData.constEnd());
@@ -88,18 +89,18 @@ void PlotWidget::onChange() {
         xMax = *xMinMax.second;
     }
 
-    if (!yData.isEmpty()) {
-        auto yMinMax = std::minmax_element(yData.constBegin(), yData.constEnd());
-        yMin = *yMinMax.first;
-        yMax = *yMinMax.second;
-    }
+    //if (!yData.isEmpty()) {
+    //    auto yMinMax = std::minmax_element(yData.constBegin(), yData.constEnd());
+    //    yMin = *yMinMax.first;
+    //    yMax = *yMinMax.second;
+    //}
 
     // Add padding
     double xPadding = (xMax - xMin) * 0.05;
-    double yPadding = (yMax - yMin) * 0.05;
+    double yPadding = (yTop - yBot) * 0.05;
 
     plot->xAxis->setRange(xMin - xPadding, xMax + xPadding);
-    plot->yAxis->setRange(yMin - yPadding, yMax + yPadding);
+    plot->yAxis->setRange(yBot - yPadding, yTop + yPadding);
 
     // Draw vertical line if needed
     if (_x > 0) {
@@ -108,8 +109,8 @@ void PlotWidget::onChange() {
         m_pen.setWidth(2);
         m_pen.setColor(UiGreen);
         vLine->setPen(m_pen);
-        vLine->start->setCoords(_x, yMin - yPadding);
-        vLine->end->setCoords(_x, yMax + yPadding);
+        vLine->start->setCoords(_x, yBot - yPadding);
+        vLine->end->setCoords(_x, yTop + yPadding);
 
     }
 

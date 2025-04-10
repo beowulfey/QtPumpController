@@ -15,7 +15,7 @@ public:
     void setX(double currX);
     double x() const;
 
-    void setYAxis(double bot, double top);
+    void setYAxis(int pac, int pbc);
 
     void clearAxes();
 
@@ -30,7 +30,7 @@ private:
     QCustomPlot *plot;
     QCPGraph *graph;
     double _x;
-    double ybot, ytop;
+    int yBot, yTop;
     double runStart;
     QVector<double> xData, yData;
 };

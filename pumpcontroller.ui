@@ -391,13 +391,71 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="4,0,0,8,0">
          <item>
-          <layout class="QGridLayout" name="gridLayout_4">
+          <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,0,0,0,1,1">
            <property name="rightMargin">
             <number>0</number>
            </property>
            <property name="verticalSpacing">
             <number>6</number>
            </property>
+           <item row="1" column="0" colspan="2">
+            <widget class="QLabel" name="label_15">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Time (min)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0" colspan="2">
+            <widget class="QLabel" name="label_16">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>End Conc (mM)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="5">
+            <widget class="QPushButton" name="butClearSegments">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Clear All</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="4" colspan="2">
+            <widget class="QLabel" name="label_19">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="font">
+              <font>
+               <family>.AppleSystemUIFont</family>
+               <bold>true</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Current Segments</string>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0" colspan="3">
             <widget class="QLabel" name="label_18">
              <property name="sizePolicy">
@@ -417,6 +475,45 @@
              </property>
             </widget>
            </item>
+           <item row="5" column="4">
+            <widget class="QPushButton" name="butDeleteSegment">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Delete</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QSpinBox" name="spinStartConc">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="singleStep">
+              <number>10</number>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QSpinBox" name="spinEndConc">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="singleStep">
+              <number>10</number>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="3" rowspan="6">
             <widget class="Line" name="line_3">
              <property name="orientation">
@@ -424,38 +521,10 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0" colspan="2">
-            <widget class="QLabel" name="label_16">
-             <property name="text">
-              <string>End Conc (mM)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0" colspan="2">
-            <widget class="QLabel" name="label_15">
-             <property name="text">
-              <string>Time (min)</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="4">
-            <widget class="QPushButton" name="butDeleteSegment">
-             <property name="text">
-              <string>Delete</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0" colspan="3">
-            <widget class="QPushButton" name="butAddSegment">
-             <property name="text">
-              <string>Add Segment</string>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="2">
             <widget class="QDoubleSpinBox" name="spinSegTime">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -468,46 +537,6 @@
              </property>
              <property name="stepType">
               <enum>QAbstractSpinBox::StepType::DefaultStepType</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="2">
-            <widget class="QSpinBox" name="spinStartConc">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="singleStep">
-              <number>10</number>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="5">
-            <widget class="QPushButton" name="butClearSegments">
-             <property name="text">
-              <string>Clear All</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="2">
-            <widget class="QSpinBox" name="spinEndConc">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="singleStep">
-              <number>10</number>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0" colspan="2">
-            <widget class="QLabel" name="label_17">
-             <property name="text">
-              <string>Start Conc (mM)</string>
              </property>
             </widget>
            </item>
@@ -524,12 +553,6 @@
                <width>0</width>
                <height>0</height>
               </size>
-             </property>
-             <property name="font">
-              <font>
-               <family>Arial</family>
-               <pointsize>10</pointsize>
-              </font>
              </property>
              <property name="sizeAdjustPolicy">
               <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
@@ -566,16 +589,23 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="4" colspan="2">
-            <widget class="QLabel" name="label_19">
-             <property name="font">
-              <font>
-               <family>.AppleSystemUIFont</family>
-               <bold>true</bold>
-              </font>
+           <item row="2" column="0" colspan="2">
+            <widget class="QLabel" name="label_17">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
              </property>
              <property name="text">
-              <string>Current Segments</string>
+              <string>Start Conc (mM)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="3">
+            <widget class="QPushButton" name="butAddSegment">
+             <property name="text">
+              <string>Add Segment</string>
              </property>
             </widget>
            </item>

@@ -16,9 +16,11 @@ PumpController::PumpController(QWidget *parent)
 
     // Table model setup
     tableModel = new TableModel(this);
-    QHeaderView* header=ui->tableSegments->verticalHeader();
-    header->setDefaultSectionSize(20); // 20 px height
-    header->sectionResizeMode(QHeaderView::Fixed);
+    QHeaderView* vHeader=ui->tableSegments->verticalHeader();
+    vHeader->setDefaultSectionSize(20); // 20 px height
+    vHeader->setSectionResizeMode(QHeaderView::Fixed);
+    QHeaderView* hHeader=ui->tableSegments->horizontalHeader();
+    hHeader->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableSegments->setModel(tableModel);
     // We reimplment selection so clicking selects/deselects whole rows
     ui->tableSegments->setSelectionMode(QAbstractItemView::NoSelection);
@@ -186,6 +188,9 @@ void PumpController::confirmSettings()
     ui->butUpdateProtocol->setEnabled(1);
     ui->butConfirmSettings->setDisabled(1);
     ui->spinSegTime->setMaximum(30); // # 30 minutes maximum time; limit of pump pause?
+    ui->protocolPlot->setYAxis(ui->spinPac->value(), ui->spinPbc->value());
+    ui->spinStartConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
+    ui->spinEndConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
 
     // Maybe add logic to update segments if segments are changed!
 
@@ -271,4 +276,5 @@ void PumpController::updateProtocol()
 {
     currProtocol->generate(tableModel->getSegments());
     ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
+
 }
