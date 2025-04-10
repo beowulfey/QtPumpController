@@ -74,7 +74,7 @@ private:
 
     QString pumpComPort;
     QString condComPort;
-    float offset;
+    //float offset;
     TableModel *tableModel;
     QTimer *runTimer;
     QTimer *intervalTimer;

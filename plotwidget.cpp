@@ -43,6 +43,10 @@ void PlotWidget::setYAxis(int pac, int pbc) {
     onChange();
 }
 
+void PlotWidget::setYlabel(QString label){
+    plot->yAxis->setLabel(label);
+}
+
 void PlotWidget::clearAxes() {
     plot->clearGraphs();
     graph = plot->addGraph();

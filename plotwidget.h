@@ -17,6 +17,8 @@ public:
 
     void setYAxis(int pac, int pbc);
 
+    void setYlabel(QString label);
+
     void clearAxes();
 
     void setStart(double time);

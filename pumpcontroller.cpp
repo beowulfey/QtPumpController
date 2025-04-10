@@ -8,14 +8,14 @@ PumpController::PumpController(QWidget *parent)
     ui(new Ui::PumpController),
     pumpComPort("None"),
     condComPort("None"),
-    offset(0.00),
-    xPos(-1)
+    //offset(0.00),       //
+    xPos(-1)            // hides the vLine off the protocol chart
 {
     // Create window
     ui->setupUi(this);
     this->setWindowTitle(QString("Pump Controller"));
 
-    // Table model setup
+    // Table and model setup
     tableModel = new TableModel(this);
     QHeaderView* vHeader=ui->tableSegments->verticalHeader();
     vHeader->setDefaultSectionSize(20); // 20 px height
@@ -23,20 +23,19 @@ PumpController::PumpController(QWidget *parent)
     QHeaderView* hHeader=ui->tableSegments->horizontalHeader();
     hHeader->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableSegments->setModel(tableModel);
-    // We reimplment selection so clicking selects/deselects whole rows
+    ui->tableSegments->resizeColumnsToContents();
+    // Here we reimplement selection so clicking selects/deselects whole rows
     ui->tableSegments->setSelectionMode(QAbstractItemView::NoSelection);
     ui->tableSegments->setSelectionBehavior(QAbstractItemView::SelectRows);
-
     currProtocol = new Protocol(this);
+
     // Timer stuff
     runTimer = new QTimer(this);
     runTimer->setTimerType(Qt::PreciseTimer);
     runTimer->setSingleShot(1);
-
     intervalTimer = new QTimer(this);
     intervalTimer->setSingleShot(0);
-    // This will most likely never change.
-    intervalTimer->start(currProtocol->dt()*1000);
+    intervalTimer->start(currProtocol->dt()*1000); // This will most likely never change.
 
     //condTimer = new QTimer(this);
     //condTimer->setSingleShot(0);
@@ -62,7 +61,15 @@ PumpController::PumpController(QWidget *parent)
     ui->butStartProtocol->setDisabled(1);
     ui->butStopProtocol->setDisabled(1);
     ui->butUpdateProtocol->setDisabled(1);
-    ui->tableSegments->resizeColumnsToContents();
+    ui->butDeleteSegment->setDisabled(1);
+    ui->butSetCondMin->setDisabled(1);
+    ui->butSetCondMax->setDisabled(1);
+    ui->butResetCond->setDisabled(1);
+
+    // Adjust the conductivity plot from default
+    ui->condPlot->setYlabel("Units");
+
+
 
     // SIGNALS TO SLOTS
     // These are for UX, disabling/enabling to encourage order of operations. Can't start protocols until settings are confirmed.
@@ -359,6 +366,7 @@ void PumpController::stopProtocol()
     writeToConsole("Protocol ended normally");
     xPos = -1;
     ui->protocolPlot->setX(-1);
+    runTimer->stop();
 }
 
 void PumpController::timerTick()
@@ -372,13 +380,13 @@ void PumpController::timerTick()
         if (xPos <= currProtocol->xvals().length()){
             xPos += 1;
             ui->protocolPlot->setX(currProtocol->xvals().at(xPos));
-            writeToConsole("Test "+QString::number(xPos));
+            //writeToConsole("Test "+QString::number(xPos));
         }
 
-        double totalTime = ((currProtocol->xvals().count() - 1)*currProtocol->dt())*1000; //
-        double timeLeft = runTimer->remainingTime();
-        int currPos = std::round(totalTime - timeLeft);
-        qDebug() << totalTime << timeLeft << currPos <<xPos << currProtocol->xvals().length(); //<< currProtocol->xvals().length() - currPos;
+        //double totalTime = ((currProtocol->xvals().count() - 1)*currProtocol->dt())*1000; //
+        //double timeLeft = runTimer->remainingTime();
+        //int currPos = std::round(totalTime - timeLeft);
+        //qDebug() << totalTime << timeLeft << currPos <<xPos << currProtocol->xvals().length(); //<< currProtocol->xvals().length() - currPos;
 
     }
 }
