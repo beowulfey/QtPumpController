@@ -249,7 +249,7 @@ void PumpController::confirmSettings()
     //ui->butDeleteSegment->setEnabled(1);
     //ui->tableSegments->setEnabled(1);
     ui->butStartProtocol->setEnabled(1);
-    ui->butStopProtocol->setEnabled(1);
+    //ui->butStopProtocol->setEnabled(1);
     ui->butUpdateProtocol->setEnabled(1);
     ui->butConfirmSettings->setDisabled(1);
     ui->spinSegTime->setMaximum(30); // # 30 minutes maximum time; limit of pump pause?
@@ -387,6 +387,7 @@ void PumpController::startProtocol()
             ui->protocolPlot->setX(currProtocol->xvals().at(xPos));
             writeToConsole("Protocol started.", UiGreen);
         });
+        ui->butStopProtocol->setEnabled(1);
 
     } else {
         writeToConsole("Your protocol is empty! What are you running?", UiYellow);
@@ -398,13 +399,14 @@ void PumpController::stopProtocol()
 {
     if (runTimer->isActive())
     {
-        writeToConsole("Protocol ended normally");
+        writeToConsole("Protocol stopped", UiYellow);
         runTimer->stop();
     } else {
-        writeToConsole("Nothing is running -- nothing to stop!", UiYellow);
+        writeToConsole("Protocol ended on its own", UiGreen);
     }
     xPos = -1; // just in case lets reset these
     ui->protocolPlot->setX(-1);
+    ui->butStopProtocol->setDisabled(1);
 
 
 }
