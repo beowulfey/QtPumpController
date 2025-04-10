@@ -34,6 +34,7 @@ public:
     void removeSegment(int pos = -1);
     QVector<QVector<double>> getSegments() const;
     void clearSegments();
+    void updateSegments();
 
 signals:
 

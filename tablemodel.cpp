@@ -131,3 +131,7 @@ void TableModel::clearSegments() {
     endResetModel();
     emit segmentsChanged();
 }
+
+void TableModel::updateSegments() {
+    emit segmentsChanged();
+}

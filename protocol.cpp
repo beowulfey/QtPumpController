@@ -32,6 +32,11 @@ void Protocol::setYvals(const QVector<double>& y) {
     yValues = y;
 }
 
+const QVector<QVector<double>> Protocol::shareSegments()
+{
+    return segments;
+}
+
 void Protocol::generate(const QVector<QVector<double>>& segs) {
     if (!segs.isEmpty()) {
         segments = segs;

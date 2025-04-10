@@ -20,6 +20,7 @@ public:
 
     void generate(const QVector<QVector<double>>& segs);
     void clear();
+    const QVector<QVector<double>> shareSegments();
 
 private:
     double timeStep;

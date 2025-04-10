@@ -55,9 +55,9 @@ PumpController::PumpController(QWidget *parent)
     ui->spinSegTime->setDisabled(1);
     ui->spinStartConc->setDisabled(1);
     ui->spinEndConc->setDisabled(1);
-    ui->butAddSegment->setDisabled(1);
-    ui->butClearSegments->setDisabled(1);
-    ui->tableSegments->setDisabled(1);
+    //ui->butAddSegment->setDisabled(1);
+    //ui->butClearSegments->setDisabled(1);
+    //ui->tableSegments->setDisabled(1);
     ui->butStartProtocol->setDisabled(1);
     ui->butStopProtocol->setDisabled(1);
     ui->butUpdateProtocol->setDisabled(1);
@@ -103,7 +103,9 @@ PumpController::PumpController(QWidget *parent)
 
     connect(tableModel, &TableModel::segmentsChanged, this, &PumpController::updateProtocol);
     connect(ui->butStartProtocol, &QPushButton::clicked, this, &PumpController::startProtocol);
+    connect(ui->butUpdateProtocol, &QPushButton::clicked, this, &PumpController::updateProtocol);
     connect(ui->butStopProtocol, &QPushButton::clicked, this, &PumpController::stopProtocol);
+
     connect(runTimer, &QTimer::timeout, this, &PumpController::stopProtocol);
     connect(intervalTimer, &QTimer::timeout, this, &PumpController::timerTick);
 
@@ -242,9 +244,10 @@ void PumpController::confirmSettings()
     ui->spinSegTime->setEnabled(1);
     ui->spinStartConc->setEnabled(1);
     ui->spinEndConc->setEnabled(1);
-    ui->butAddSegment->setEnabled(1);
-    ui->butClearSegments->setEnabled(1);
-    ui->tableSegments->setEnabled(1);
+    //ui->butAddSegment->setEnabled(1);
+    //ui->butClearSegments->setEnabled(1);
+    //ui->butDeleteSegment->setEnabled(1);
+    //ui->tableSegments->setEnabled(1);
     ui->butStartProtocol->setEnabled(1);
     ui->butStopProtocol->setEnabled(1);
     ui->butUpdateProtocol->setEnabled(1);
@@ -253,6 +256,8 @@ void PumpController::confirmSettings()
     ui->protocolPlot->setYAxis(ui->spinPac->value(), ui->spinPbc->value());
     ui->spinStartConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
     ui->spinEndConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
+
+    //
 
 }
 
@@ -269,9 +274,9 @@ void PumpController::settingsChanged()
     ui->spinSegTime->setDisabled(1);
     ui->spinStartConc->setDisabled(1);
     ui->spinEndConc->setDisabled(1);
-    ui->butAddSegment->setDisabled(1);
-    ui->butClearSegments->setDisabled(1);
-    ui->tableSegments->setDisabled(1);
+    //ui->butAddSegment->setDisabled(1);
+    //ui->butClearSegments->setDisabled(1);
+    //ui->tableSegments->setDisabled(1);
     ui->butStartProtocol->setDisabled(1);
     ui->butStopProtocol->setDisabled(1);
     ui->butUpdateProtocol->setDisabled(1);
@@ -308,19 +313,46 @@ void PumpController::rmSegment()
     if (! ui->tableSegments->selectionModel()->selectedRows().isEmpty())
     {
         tableModel->removeSegment(ui->tableSegments->selectionModel()->selectedRows().first().row());
+    } else {
+        writeToConsole("So eager to clear that which doesn't exist! No segments to remove.", UiYellow);
     }
 }
 
 void PumpController::clearSegments()
 {
-    tableModel->clearSegments();
+    if (! ui->tableSegments->selectionModel()->selectedRows().isEmpty())
+    {
+        tableModel->clearSegments();
+    } else {
+        writeToConsole("Maybe add some segments first -- nothing to clear.", UiYellow);
+    }
+
 }
+
+//void PumpController::updateProtocolButton()
+//{
+
+//}
 
 void PumpController::updateProtocol()
 // Not a button, but called automatically whenever the protocol changes.
 {
-    currProtocol->generate(tableModel->getSegments());
-    ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
+    if (tableModel->rowCount(QModelIndex())>0)
+    {
+        currProtocol->generate(tableModel->getSegments());
+        ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
+        writeToConsole("Current segments: ", UiBlue);
+        for (const auto& seg : currProtocol->shareSegments()) {
+            if (seg.size() != 3) continue;  // Expecting [duration, start, end]
+
+            double duration = seg[0];
+            double start = seg[1];
+            double end = seg[2];
+            writeToConsole(QString::number(duration, 'f', 2)+" min | "+QString::number(start)+" mM | " +QString::number(end)+" mM", UiBlue);
+        }
+    } else {
+        writeToConsole("I'm afraid you can't update with an empty protocol.", UiYellow);
+    }
 
 }
 
@@ -363,10 +395,17 @@ void PumpController::startProtocol()
 void PumpController::stopProtocol()
 // This is called upon hitting Stop Protocol button
 {
-    writeToConsole("Protocol ended normally");
-    xPos = -1;
+    if (runTimer->isActive())
+    {
+        writeToConsole("Protocol ended normally");
+        runTimer->stop();
+    } else {
+        writeToConsole("Nothing is running -- nothing to stop!", UiYellow);
+    }
+    xPos = -1; // just in case lets reset these
     ui->protocolPlot->setX(-1);
-    runTimer->stop();
+
+
 }
 
 void PumpController::timerTick()
