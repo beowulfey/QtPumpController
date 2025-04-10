@@ -41,6 +41,7 @@ private:
     QSerialPort *serial;
     const char startByte = 0x02;
     const char endByte = 0x03;
+    QByteArray buffer;
     QByteArray buildCommand(Command cmd, double value);
 };
 
