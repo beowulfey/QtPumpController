@@ -39,6 +39,7 @@ public slots:
     void updateProtocol();
     //void updatePumps();
     void startProtocol();
+    void sendProtocol();
     void stopProtocol();
 
     void timerTick();
@@ -81,6 +82,7 @@ private:
     int xPos;
     //QTimer *condTimer;
     Protocol *currProtocol;
+    bool protocolChanged;
     //QList<Pump> pumpList;
 };
 #endif // PUMPCONTROLLER_H

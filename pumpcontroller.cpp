@@ -9,7 +9,8 @@ PumpController::PumpController(QWidget *parent)
     pumpComPort("None"),
     condComPort("None"),
     //offset(0.00),       //
-    xPos(-1)            // hides the vLine off the protocol chart
+    xPos(-1),            // hides the vLine off the protocol chart
+    protocolChanged(1)
 {
     // Create window
     ui->setupUi(this);
@@ -52,16 +53,16 @@ PumpController::PumpController(QWidget *parent)
     ui->butStartPump->setDisabled(1);
     ui->butUpdatePump->setDisabled(1);
     ui->butStopPump->setDisabled(1);
-    ui->spinSegTime->setDisabled(1);
-    ui->spinStartConc->setDisabled(1);
-    ui->spinEndConc->setDisabled(1);
+    //ui->spinSegTime->setDisabled(1);
+    //ui->spinStartConc->setDisabled(1);
+    //ui->spinEndConc->setDisabled(1);
     //ui->butAddSegment->setDisabled(1);
     //ui->butClearSegments->setDisabled(1);
     //ui->tableSegments->setDisabled(1);
     ui->butStartProtocol->setDisabled(1);
     ui->butStopProtocol->setDisabled(1);
-    ui->butUpdateProtocol->setDisabled(1);
-    ui->butDeleteSegment->setDisabled(1);
+    ui->butSendProtocol->setDisabled(1);
+    //ui->butDeleteSegment->setDisabled(1);
     ui->butSetCondMin->setDisabled(1);
     ui->butSetCondMax->setDisabled(1);
     ui->butResetCond->setDisabled(1);
@@ -103,7 +104,7 @@ PumpController::PumpController(QWidget *parent)
 
     connect(tableModel, &TableModel::segmentsChanged, this, &PumpController::updateProtocol);
     connect(ui->butStartProtocol, &QPushButton::clicked, this, &PumpController::startProtocol);
-    connect(ui->butUpdateProtocol, &QPushButton::clicked, this, &PumpController::updateProtocol);
+    connect(ui->butSendProtocol, &QPushButton::clicked, this, &PumpController::sendProtocol);
     connect(ui->butStopProtocol, &QPushButton::clicked, this, &PumpController::stopProtocol);
 
     connect(runTimer, &QTimer::timeout, this, &PumpController::stopProtocol);
@@ -237,10 +238,8 @@ void PumpController::confirmSettings()
     }
     ui->butConfirmSettings->setStyleSheet("QPushButton { color: mediumseagreen;}");
     ui->butConfirmSettings->setText("Confirmed");
-    ui->spinStraightConc->setEnabled(1);
-    ui->butStartPump->setEnabled(1);
-    ui->butUpdatePump->setEnabled(1);
-    ui->butStopPump->setEnabled(1);
+
+
     ui->spinSegTime->setEnabled(1);
     ui->spinStartConc->setEnabled(1);
     ui->spinEndConc->setEnabled(1);
@@ -250,13 +249,20 @@ void PumpController::confirmSettings()
     //ui->tableSegments->setEnabled(1);
     ui->butStartProtocol->setEnabled(1);
     //ui->butStopProtocol->setEnabled(1);
-    ui->butUpdateProtocol->setEnabled(1);
     ui->butConfirmSettings->setDisabled(1);
     ui->spinSegTime->setMaximum(30); // # 30 minutes maximum time; limit of pump pause?
     ui->protocolPlot->setYAxis(ui->spinPac->value(), ui->spinPbc->value());
     ui->spinStartConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
     ui->spinEndConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
+    tableModel->updateSegments();
 
+    if (pumpComPort != "None" ) {
+        ui->spinStraightConc->setEnabled(1);
+        ui->butStartPump->setEnabled(1);
+        ui->butUpdatePump->setEnabled(1);
+        ui->butStopPump->setEnabled(1);
+        ui->butSendProtocol->setEnabled(1);
+    }
     //
 
 }
@@ -276,10 +282,11 @@ void PumpController::settingsChanged()
     ui->spinEndConc->setDisabled(1);
     //ui->butAddSegment->setDisabled(1);
     //ui->butClearSegments->setDisabled(1);
+
     //ui->tableSegments->setDisabled(1);
     ui->butStartProtocol->setDisabled(1);
     ui->butStopProtocol->setDisabled(1);
-    ui->butUpdateProtocol->setDisabled(1);
+    ui->butSendProtocol->setDisabled(1);
 
 }
 
@@ -314,13 +321,13 @@ void PumpController::rmSegment()
     {
         tableModel->removeSegment(ui->tableSegments->selectionModel()->selectedRows().first().row());
     } else {
-        writeToConsole("So eager to clear that which doesn't exist! No segments to remove.", UiYellow);
+        writeToConsole("Pick a segment to remove first!", UiYellow);
     }
 }
 
 void PumpController::clearSegments()
 {
-    if (! ui->tableSegments->selectionModel()->selectedRows().isEmpty())
+    if (tableModel->rowCount(QModelIndex())>0)
     {
         tableModel->clearSegments();
     } else {
@@ -343,7 +350,7 @@ void PumpController::updateProtocol()
         ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
 
     } else {
-        writeToConsole("I'm afraid you can't update with an empty protocol.", UiYellow);
+        //writeToConsole("I'm afraid you can't update with an empty protocol.", UiYellow);
     }
 
 }
@@ -388,11 +395,28 @@ void PumpController::startProtocol()
             writeToConsole("Protocol started.", UiGreen);
         });
         ui->butStopProtocol->setEnabled(1);
+        ui->butStartPump->setDisabled(1);
+        ui->butUpdatePump->setDisabled(1);
+        ui->butStopPump->setDisabled(1);
+        ui->butStartProtocol->setText("Restart");
+        ui->butAddSegment->setDisabled(1);
+        ui->butDeleteSegment->setDisabled(1);
+        ui->butClearSegments->setDisabled(1);
+        ui->spinFlowRate->setDisabled(1);
+        ui->spinPac->setDisabled(1);
+        ui->spinPbc->setDisabled(1);
+        ui->butSetComs->setDisabled(1);
+
+        ui->butSendProtocol->setDisabled(1);
 
     } else {
         writeToConsole("Your protocol is empty! What are you running?", UiYellow);
     }
 }
+
+void PumpController::sendProtocol()
+{}
+
 
 void PumpController::stopProtocol()
 // This is called upon hitting Stop Protocol button
@@ -407,6 +431,21 @@ void PumpController::stopProtocol()
     xPos = -1; // just in case lets reset these
     ui->protocolPlot->setX(-1);
     ui->butStopProtocol->setDisabled(1);
+    ui->butStartProtocol->setText("Start");
+    ui->butAddSegment->setEnabled(1);
+    ui->butClearSegments->setEnabled(1);
+    ui->butDeleteSegment->setEnabled(1);
+    ui->butSetComs->setEnabled(1);
+    ui->spinFlowRate->setEnabled(1);
+    ui->spinPac->setEnabled(1);
+    ui->spinPbc->setEnabled(1);
+
+    if (pumpComPort != "None" ) {
+        ui->butStartPump->setEnabled(1);
+        ui->butUpdatePump->setEnabled(1);
+        ui->butStopPump->setEnabled(1);
+        ui->butSendProtocol->setEnabled(1);
+    }
 
 
 }

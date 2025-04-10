@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>806</width>
-    <height>670</height>
+    <height>712</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -663,9 +663,9 @@
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="butUpdateProtocol">
+            <widget class="QPushButton" name="butSendProtocol">
              <property name="text">
-              <string>Update</string>
+              <string>Send to Pump</string>
              </property>
             </widget>
            </item>
