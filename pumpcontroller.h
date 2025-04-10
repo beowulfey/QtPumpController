@@ -6,7 +6,7 @@
 #include "tablemodel.h"
 #include "protocol.h"
 
-//#include "pump.h"
+#include "pumpinterface.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -41,6 +41,8 @@ public slots:
     void startProtocol();
     void sendProtocol();
     void stopProtocol();
+
+    void initiatePumps();
 
     void timerTick();
 
@@ -83,6 +85,6 @@ private:
     //QTimer *condTimer;
     Protocol *currProtocol;
     bool protocolChanged;
-    //QList<Pump> pumpList;
+    PumpInterface *pumps;
 };
 #endif // PUMPCONTROLLER_H

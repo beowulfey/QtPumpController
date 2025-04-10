@@ -122,6 +122,7 @@ PumpController::PumpController(QWidget *parent)
     connect(runTimer, &QTimer::timeout, this, &PumpController::stopProtocol);
     connect(intervalTimer, &QTimer::timeout, this, &PumpController::timerTick);
 
+
     // Run timers, for protocol stuff
     //connect(&this->int_timer, &QTimer::timeout, this, &PumpController::timer_tick);
     //connect(&this->cond_timer, &QTimer::timeout, this, &PumpController::cond_timer_tick);
@@ -223,6 +224,7 @@ void PumpController::setCOMs(const QString& cond, const QString& pump)
     if (pump != "None") {
         pumpComPort = pump;
         writeToConsole("PUMP PORT SELECTED: " + pumpComPort, UiGreen);
+        initiatePumps();
     } else {
         pumpComPort.clear();
         writeToConsole("No pump port selected!", UiRed);
@@ -238,6 +240,16 @@ void PumpController::setCOMs(const QString& cond, const QString& pump)
     this->settingsChanged();
 }
 
+void PumpController::initiatePumps()
+// For this, Pump A is address 0, Pump B is address 1
+// This is true in all cases.
+{
+    if (! pumpComPort.isEmpty())
+    {
+        pumps = new PumpInterface(this);
+        pumps->openPort(pumpComPort);
+    }
+}
 
 void PumpController::confirmSettings()
 {
