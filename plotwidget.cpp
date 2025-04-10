@@ -77,6 +77,7 @@ void PlotWidget::appendData(double x, double y) {
 }
 
 void PlotWidget::onChange() {
+    plot->clearItems();
     graph->setData(xData, yData);
 
     // Dynamic x/y range setup
@@ -103,6 +104,7 @@ void PlotWidget::onChange() {
     plot->yAxis->setRange(yBot - yPadding, yTop + yPadding);
 
     // Draw vertical line if needed
+
     if (_x >= 0) {
         QCPItemLine *vLine = new QCPItemLine(plot);
         QPen m_pen;

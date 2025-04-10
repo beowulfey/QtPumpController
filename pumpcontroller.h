@@ -78,6 +78,7 @@ private:
     TableModel *tableModel;
     QTimer *runTimer;
     QTimer *intervalTimer;
+    int xPos;
     //QTimer *condTimer;
     Protocol *currProtocol;
     //QList<Pump> pumpList;

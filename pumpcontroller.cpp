@@ -8,7 +8,8 @@ PumpController::PumpController(QWidget *parent)
     ui(new Ui::PumpController),
     pumpComPort("None"),
     condComPort("None"),
-    offset(0.00)
+    offset(0.00),
+    xPos(-1)
 {
     // Create window
     ui->setupUi(this);
@@ -342,7 +343,8 @@ void PumpController::startProtocol()
             // Only the first interval might be shorter, the rest will be syncd with intTimer
             runTimer->start(totalTime);
             qDebug() << "Synchronized protocol start! runTimer remaining time now: " << runTimer->remainingTime();
-            ui->protocolPlot->setX(0);
+            xPos = 0;
+            ui->protocolPlot->setX(currProtocol->xvals().at(xPos));
             writeToConsole("Protocol started.", UiGreen);
         });
 
@@ -355,7 +357,8 @@ void PumpController::stopProtocol()
 // This is called upon hitting Stop Protocol button
 {
     writeToConsole("Protocol ended normally");
-    ui->protocolPlot->setX(-100);
+    xPos = -1;
+    ui->protocolPlot->setX(-1);
 }
 
 void PumpController::timerTick()
@@ -365,10 +368,17 @@ void PumpController::timerTick()
     // This would equate to 14500 ms left.
     if (runTimer->isActive())
     {
+
+        if (xPos <= currProtocol->xvals().length()){
+            xPos += 1;
+            ui->protocolPlot->setX(currProtocol->xvals().at(xPos));
+            writeToConsole("Test "+QString::number(xPos));
+        }
+
         double totalTime = ((currProtocol->xvals().count() - 1)*currProtocol->dt())*1000; //
         double timeLeft = runTimer->remainingTime();
         int currPos = std::round(totalTime - timeLeft);
-        qDebug() << totalTime << timeLeft << currPos << currProtocol->xvals().length(); //<< currProtocol->xvals().length() - currPos;
+        qDebug() << totalTime << timeLeft << currPos <<xPos << currProtocol->xvals().length(); //<< currProtocol->xvals().length() - currPos;
 
     }
 }
