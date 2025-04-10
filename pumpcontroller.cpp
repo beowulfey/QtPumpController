@@ -62,6 +62,9 @@ PumpController::PumpController(QWidget *parent)
 
     // SIGNALS TO SLOTS
     // These are for UX, disabling/enabling to encourage order of operations. Can't start protocols until settings are confirmed.
+    connect(ui->butClearConsole, &QPushButton::clicked, this, &PumpController::clearConsole);
+    connect(ui->butSaveConsole, &QPushButton::clicked, this, &PumpController::saveConsole);
+
     connect(ui->butConfirmSettings, &QPushButton::clicked, this, &PumpController::confirmSettings);
     connect(ui->butSetComs, &QPushButton::clicked, this, &PumpController::openCOMsDialog);
     connect(ui->spinFlowRate, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &PumpController::settingsChanged);
@@ -122,8 +125,13 @@ PumpController::~PumpController()
 void PumpController::writeToConsole(const QString& text, const QColor& color)
 {
     QColor useColor = color.isValid() ? color : ui->console->palette().color(QPalette::Text);
-    QString formattedText = "<code>" + QDateTime::currentDateTime().toString("HH:mm:ss.ms")+" | "+ QString("<span style=\"white-space: pre-wrap; color: %1\">%2</span></code><br>")
-    .arg(useColor.name(), text);
+
+    // This one has a tab character but it's quite long
+    //QString formattedText = "<code style=\"white-space:pre\">" + QDateTime::currentDateTime().toString("HH:mm:ss.ms")+"&#9;|"+ QString("<span style=\"white-space: pre-wrap; color: %1\">%2</span></code><br>")
+    //.arg(useColor.name(), text);
+
+    QString formattedText = "<code>" + QDateTime::currentDateTime().toString("HH:mm:ss")+" | "+ QString("<span style=\"white-space: pre-wrap; color: %1\">%2</span></code><br>")
+        .arg(useColor.name(), text);
 
     QTextCursor cursor = ui->console->textCursor();
     cursor.movePosition(QTextCursor::End);
@@ -131,6 +139,44 @@ void PumpController::writeToConsole(const QString& text, const QColor& color)
     ui->console->insertHtml(formattedText);
     cursor.movePosition(QTextCursor::PreviousCharacter);
     ui->console->setTextCursor(cursor);
+}
+
+void PumpController::clearConsole()
+{
+    QMessageBox msg(this);
+    msg.setText("Are you sure you want to clear the console?");
+    msg.setStandardButtons(QMessageBox::Cancel | QMessageBox::Ok);
+    msg.setDefaultButton(QMessageBox::Ok);
+    int result = msg.exec();
+
+    if (result == 1024)
+    {
+        ui->console->clear();
+    }
+    writeToConsole("Console cleared!", UiYellow);
+}
+
+void PumpController::saveConsole()
+{
+    QString saveFile = QFileDialog::getSaveFileName(this, tr("Save Console Text"),QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
+    QFile colorFile(saveFile+"_colors.md");
+    QFile plainFile(saveFile+".txt");
+    if (plainFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&plainFile);
+        out << ui->console->toPlainText();
+        plainFile.close();
+    } else {
+        qWarning() << "Could not open file for writing:" << saveFile+".txt";
+    }
+    if (colorFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&colorFile);
+        out << ui->console->toHtml();
+        colorFile.close();
+    } else {
+        qWarning() << "Could not open file for writing:" << saveFile+"_color.md";
+    }
+    writeToConsole("Wrote plain text and color version of logs to "+saveFile, UiYellow);
+
 }
 
 

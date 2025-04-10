@@ -24,6 +24,8 @@ public:
 
 public slots:
     void writeToConsole(const QString& text, const QColor& color = QColor());
+    void saveConsole();
+    void clearConsole();
 
     void openCOMsDialog();
     void setCOMs(const QString& cond, const QString& pump);
@@ -52,7 +54,7 @@ public slots:
     //void condTimerTick();
     //void beginRecordCond();
     //void stopRecordCond();
-    //void saveLog();
+
     //void saveCond();
     //void startProtocol();
 
