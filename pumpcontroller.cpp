@@ -248,7 +248,13 @@ void PumpController::initiatePumps()
     {
         pumps = new PumpInterface(this);
         pumps->openPort(pumpComPort);
+        connect(pumps, &PumpInterface::errorOccurred, this, &PumpController::receivePumpError);
     }
+}
+
+void PumpController::receivePumpError(const QString& err)
+{
+    writeToConsole(err,UiRed);
 }
 
 void PumpController::confirmSettings()

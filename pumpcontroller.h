@@ -43,6 +43,7 @@ public slots:
     void stopProtocol();
 
     void initiatePumps();
+    void receivePumpError(const QString& err);
 
     void timerTick();
 

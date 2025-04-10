@@ -27,6 +27,7 @@ bool PumpInterface::openPort(const QString &portName, qint32 baudRate) {
         return false;
     }
 
+    qDebug() << serial->portName();
     return true;
 }
 
