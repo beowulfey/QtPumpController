@@ -1,7 +1,7 @@
 #ifndef THEMING_H
 #define THEMING_H
 
-#import <QColor>
+#include <QColor>
 
 const QColor UiGreen = QColorConstants::Svg::mediumseagreen;
 const QColor UiRed = QColorConstants::Svg::indianred;

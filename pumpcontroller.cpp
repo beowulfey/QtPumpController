@@ -21,9 +21,9 @@ PumpController::PumpController(QWidget *parent)
 #ifdef Q_OS_MAC
     monoFont = QFont("Monaco", 14);  // macOS default system font
 #elif defined(Q_OS_WIN)
-    monoFont = QFont("Monaco", 14);
+    monoFont = QFont("Courier New", 11);
 #else
-    monoFont = QFont("Monaco", 14);
+    monoFont = QFont("Courier New", 11);
 #endif
 
     ui->console->setFont(monoFont);

@@ -15,7 +15,19 @@ public:
 
     bool openPort(const QString &portName, qint32 baudRate = QSerialPort::Baud9600);
     void closePort();
-    bool sendCommand(const QByteArray &command);
+
+
+    enum class Command {
+        Start,
+        Stop,
+        SetFlowRate,
+        SetDirection,
+        GetStatus
+
+    };
+    Q_ENUM(Command)  // Enables use in signals/slots and metaobject system
+    bool sendCommand(Command cmd, double value = 0.0);
+
 
 signals:
     void dataReceived(const QByteArray &data);
@@ -29,7 +41,7 @@ private:
     QSerialPort *serial;
     const char startByte = 0x02;
     const char endByte = 0x03;
-    QByteArray buffer;
+    QByteArray buildCommand(Command cmd, double value);
 };
 
 #endif // PUMP_H
