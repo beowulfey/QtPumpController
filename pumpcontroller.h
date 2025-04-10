@@ -23,7 +23,7 @@ public:
     ~PumpController();
 
 public slots:
-    void writeToConsole(const QString& text, const QColor& color = Qt::black);
+    void writeToConsole(const QString& text, const QColor& color = QColor());
 
     void openCOMsDialog();
     void setCOMs(const QString& cond, const QString& pump);

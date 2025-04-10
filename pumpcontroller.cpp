@@ -121,8 +121,9 @@ PumpController::~PumpController()
 
 void PumpController::writeToConsole(const QString& text, const QColor& color)
 {
+    QColor useColor = color.isValid() ? color : ui->console->palette().color(QPalette::Text);
     QString formattedText = "<code>" + QDateTime::currentDateTime().toString("HH:mm:ss.ms")+" | "+ QString("<span style=\"white-space: pre-wrap; color: %1\">%2</span></code><br>")
-    .arg(color.name(), text);
+    .arg(useColor.name(), text);
 
     QTextCursor cursor = ui->console->textCursor();
     cursor.movePosition(QTextCursor::End);
