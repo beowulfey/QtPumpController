@@ -3,7 +3,7 @@
 #include <QApplication>
 #include <QPalette>
 #include <QStyleFactory>
-
+#include "theming.h"
 
 int main(int argc, char *argv[])
 {

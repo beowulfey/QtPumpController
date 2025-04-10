@@ -16,6 +16,18 @@ PumpController::PumpController(QWidget *parent)
     ui->setupUi(this);
     this->setWindowTitle(QString("Pump Controller"));
 
+    QFont monoFont;
+
+#ifdef Q_OS_MAC
+    monoFont = QFont("Monaco", 14);  // macOS default system font
+#elif defined(Q_OS_WIN)
+    monoFont = QFont("Monaco", 14);
+#else
+    monoFont = QFont("Monaco", 14);
+#endif
+
+    ui->console->setFont(monoFont);
+
     // Table and model setup
     tableModel = new TableModel(this);
     QHeaderView* vHeader=ui->tableSegments->verticalHeader();
@@ -148,7 +160,7 @@ void PumpController::writeToConsole(const QString& text, const QColor& color)
     //QString formattedText = "<code style=\"white-space:pre\">" + QDateTime::currentDateTime().toString("HH:mm:ss.ms")+"&#9;|"+ QString("<span style=\"white-space: pre-wrap; color: %1\">%2</span></code><br>")
     //.arg(useColor.name(), text);
 
-    QString formattedText = "<code>" + QDateTime::currentDateTime().toString("HH:mm:ss")+" | "+ QString("<span style=\"white-space: pre-wrap; color: %1\">%2</span></code><br>")
+    QString formattedText = "<code>"+QDateTime::currentDateTime().toString("HH:mm:ss")+" | "+ QString("<span style=\"white-space: pre-wrap; color: %1\">%2</span></code><br>")
         .arg(useColor.name(), text);
 
     QTextCursor cursor = ui->console->textCursor();
