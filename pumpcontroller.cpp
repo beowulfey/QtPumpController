@@ -26,17 +26,20 @@ PumpController::PumpController(QWidget *parent)
     ui->tableSegments->setSelectionMode(QAbstractItemView::NoSelection);
     ui->tableSegments->setSelectionBehavior(QAbstractItemView::SelectRows);
 
+    currProtocol = new Protocol(this);
     // Timer stuff
     runTimer = new QTimer(this);
+    runTimer->setTimerType(Qt::PreciseTimer);
     runTimer->setSingleShot(1);
 
     intervalTimer = new QTimer(this);
     intervalTimer->setSingleShot(0);
+    // This will most likely never change.
+    intervalTimer->start(currProtocol->dt()*1000);
 
-    condTimer = new QTimer(this);
-    condTimer->setSingleShot(0);
+    //condTimer = new QTimer(this);
+    //condTimer->setSingleShot(0);
 
-    currProtocol = new Protocol(this);
 
 
     // Set default settings for everything
@@ -91,6 +94,10 @@ PumpController::PumpController(QWidget *parent)
     });
 
     connect(tableModel, &TableModel::segmentsChanged, this, &PumpController::updateProtocol);
+    connect(ui->butStartProtocol, &QPushButton::clicked, this, &PumpController::startProtocol);
+    connect(ui->butStopProtocol, &QPushButton::clicked, this, &PumpController::stopProtocol);
+    connect(runTimer, &QTimer::timeout, this, &PumpController::stopProtocol);
+    connect(intervalTimer, &QTimer::timeout, this, &PumpController::timerTick);
 
     // Run timers, for protocol stuff
     //connect(&this->int_timer, &QTimer::timeout, this, &PumpController::timer_tick);
@@ -239,20 +246,7 @@ void PumpController::confirmSettings()
     ui->spinStartConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
     ui->spinEndConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
 
-    // Maybe add logic to update segments if segments are changed!
-
-
-    //this->ui->spin_start_conc->setMaximum(max(this->ui->spin_pac->value(), this->ui->spin_pbc->value()));
-    //this->ui->spin_end_conc->setMaximum(max(this->ui->spin_pac->value(), this->ui->spin_pbc->value()));
-    //this->protocol->set_dt(1) // # Locked to 1s for conductivity meter;
-    //this->ui->spin_straight_conc->setMaximum(max(this->ui->spin_pac->value(), this->ui->spin_pbc->value()));
-
-    //offset = max(this->ui->spin_pac->value(), this->ui->spin_pbc->value()) * 0.10;
-    //this->ui->widget_plots->set_yax(min(this->ui->spin_pac->value(), this->ui->spin_pbc->value())-offset,max(this->ui->spin_pac->value(), this->ui->spin_pbc->value())+offset)
-    //this->ui->widget_plot_cond->clear_axes()
-    //this->cond_timer.start(1000)
 }
-
 
 void PumpController::settingsChanged()
 {
@@ -274,11 +268,6 @@ void PumpController::settingsChanged()
     ui->butStopProtocol->setDisabled(1);
     ui->butUpdateProtocol->setDisabled(1);
 
-    //this>port = None
-    //this.pumps = None
-    //this->cond_timer->stop();
-    //this->record_cond=0;
-
 }
 
 
@@ -298,7 +287,7 @@ void PumpController::addSegment()
         ui->spinStartConc->setValue(0);
         ui->spinEndConc->setValue(0);
         ui->tableSegments->selectionModel()->clearSelection();
-        qDebug()<<tableModel->getSegments();
+        //qDebug()<<tableModel->getSegments();
 
     } else {
         writeToConsole("You can't add a segment zero minutes long...", UiYellow);
@@ -320,8 +309,66 @@ void PumpController::clearSegments()
 }
 
 void PumpController::updateProtocol()
+// Not a button, but called automatically whenever the protocol changes.
 {
     currProtocol->generate(tableModel->getSegments());
     ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
 
+}
+
+// PROTOCOL SLOTS
+
+void PumpController::startProtocol()
+{
+    if (tableModel->rowCount(QModelIndex())>0)
+    {
+        // timepoints in seconds. subtract one because we care about time intervals
+        // (e.g. 15 seconds is 31 points, so subtract one to give 15 seconds.
+        // I subtract a second time point too because I skip the first point to sync
+        // with the interval timer.
+        double totalTime = (currProtocol->xvals().count() - 1)*currProtocol->dt()*1000; //
+        qDebug() << "Total Time: " << totalTime;
+
+        // Use a lambda that captures `this`
+        auto starter = new QObject(this); // use a temporary object for connection context
+
+        connect(intervalTimer, &QTimer::timeout, starter, [this, starter, totalTime]() {
+            // Disconnect this temporary connection
+            disconnect(intervalTimer, nullptr, starter, nullptr);
+            starter->deleteLater();
+
+
+
+            // Only the first interval might be shorter, the rest will be syncd with intTimer
+            runTimer->start(totalTime);
+            qDebug() << "Synchronized protocol start! runTimer remaining time now: " << runTimer->remainingTime();
+            ui->protocolPlot->setX(0);
+            writeToConsole("Protocol started.", UiGreen);
+        });
+
+    } else {
+        writeToConsole("Your protocol is empty! What are you running?", UiYellow);
+    }
+}
+
+void PumpController::stopProtocol()
+// This is called upon hitting Stop Protocol button
+{
+    writeToConsole("Protocol ended normally");
+    ui->protocolPlot->setX(-100);
+}
+
+void PumpController::timerTick()
+// At each time point, record a conductivity meter reading and update plot X position
+{
+    // Example for 15 seconds. xvals() is 31 points. First timerTick is xvals[0], second is xvals[1]
+    // This would equate to 14500 ms left.
+    if (runTimer->isActive())
+    {
+        double totalTime = ((currProtocol->xvals().count() - 1)*currProtocol->dt())*1000; //
+        double timeLeft = runTimer->remainingTime();
+        int currPos = std::round(totalTime - timeLeft);
+        qDebug() << totalTime << timeLeft << currPos << currProtocol->xvals().length(); //<< currProtocol->xvals().length() - currPos;
+
+    }
 }

@@ -37,8 +37,11 @@ public slots:
     void clearSegments();
 
     void updateProtocol();
+    //void updatePumps();
+    void startProtocol();
+    void stopProtocol();
 
-   // void timerTick();
+    void timerTick();
 
     //void timerTick();
 
@@ -56,7 +59,7 @@ public slots:
     //void stopRecordCond();
 
     //void saveCond();
-    //void startProtocol();
+
 
     //void stopProtocol();
     //void addSegment();
@@ -75,7 +78,7 @@ private:
     TableModel *tableModel;
     QTimer *runTimer;
     QTimer *intervalTimer;
-    QTimer *condTimer;
+    //QTimer *condTimer;
     Protocol *currProtocol;
     //QList<Pump> pumpList;
 };

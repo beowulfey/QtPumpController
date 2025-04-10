@@ -2,7 +2,7 @@
 #include "theming.h"
 
 PlotWidget::PlotWidget(QWidget *parent)
-    : QWidget(parent), _x(0), yBot(0), yTop(100), runStart(0) {
+    : QWidget(parent), _x(-100), yBot(0), yTop(100), runStart(0) {
 
     // Initialize the plot
     plot = new QCustomPlot(this);
@@ -103,7 +103,7 @@ void PlotWidget::onChange() {
     plot->yAxis->setRange(yBot - yPadding, yTop + yPadding);
 
     // Draw vertical line if needed
-    if (_x > 0) {
+    if (_x >= 0) {
         QCPItemLine *vLine = new QCPItemLine(plot);
         QPen m_pen;
         m_pen.setWidth(2);

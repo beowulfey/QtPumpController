@@ -12,6 +12,7 @@ void Protocol::setDt(double dt) {
 }
 
 double Protocol::dt() const {
+    // interval in seconds, default in constructor is 0.5 seconds
     return timeStep;
 }
 
