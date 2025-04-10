@@ -341,15 +341,7 @@ void PumpController::updateProtocol()
     {
         currProtocol->generate(tableModel->getSegments());
         ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
-        writeToConsole("Current segments: ", UiBlue);
-        for (const auto& seg : currProtocol->shareSegments()) {
-            if (seg.size() != 3) continue;  // Expecting [duration, start, end]
 
-            double duration = seg[0];
-            double start = seg[1];
-            double end = seg[2];
-            writeToConsole(QString::number(duration, 'f', 2)+" min | "+QString::number(start)+" mM | " +QString::number(end)+" mM", UiBlue);
-        }
     } else {
         writeToConsole("I'm afraid you can't update with an empty protocol.", UiYellow);
     }
@@ -362,6 +354,15 @@ void PumpController::startProtocol()
 {
     if (tableModel->rowCount(QModelIndex())>0)
     {
+        writeToConsole("Current segments: ", UiBlue);
+        for (const auto& seg : currProtocol->shareSegments()) {
+            if (seg.size() != 3) continue;  // Expecting [duration, start, end]
+
+            double duration = seg[0];
+            double start = seg[1];
+            double end = seg[2];
+            writeToConsole(QString::number(duration, 'f', 2)+" min | "+QString::number(start)+" mM | " +QString::number(end)+" mM", UiBlue);
+        }
         // timepoints in seconds. subtract one because we care about time intervals
         // (e.g. 15 seconds is 31 points, so subtract one to give 15 seconds.
         // I subtract a second time point too because I skip the first point to sync
