@@ -44,6 +44,7 @@ public slots:
 
     void initiatePumps();
     void receivePumpError(const QString& err);
+    void receivePumpResponse(const QString& msg);
 
     void timerTick();
 

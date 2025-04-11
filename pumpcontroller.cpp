@@ -249,13 +249,18 @@ void PumpController::initiatePumps()
         pumps = new PumpInterface(this);
         pumps->openPort(pumpComPort);
         connect(pumps, &PumpInterface::errorOccurred, this, &PumpController::receivePumpError);
-        connect(pumps, &PumpInterface::dataReceived, this, &PumpController::receivePumpError);
+        connect(pumps, &PumpInterface::dataReceived, this, &PumpController::receivePumpResponse);
     }
 }
 
 void PumpController::receivePumpError(const QString& err)
 {
     writeToConsole(err,UiRed);
+}
+
+void PumpController::receivePumpResponse(const QString& msg)
+{
+    writeToConsole(msg, UiYellow);
 }
 
 void PumpController::confirmSettings()
