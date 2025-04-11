@@ -4,9 +4,10 @@
 PumpInterface::PumpInterface(QObject *parent) : QObject(parent), serial(new QSerialPort(this)) {
     connect(serial, &QSerialPort::readyRead, this, &PumpInterface::handleReadyRead);
     connect(serial, &QSerialPort::errorOccurred, this, &PumpInterface::handleError);
-    connect(serial, &QSerialPort::readyRead, this, []() {
-        qDebug() << "readyRead() fired!";
-    });
+    // lamda for testing
+    //connect(serial, &QSerialPort::readyRead, this, []() {
+    //    qDebug() << "readyRead() fired!";
+    //});
 }
 
 PumpInterface::~PumpInterface() {
@@ -35,9 +36,8 @@ bool PumpInterface::openPort(const QString &portName, qint32 baudRate) {
     }
 
     qDebug() << serial->portName();
-    sendCommand(PumpA, BasicCommand::GetVersion);
     qDebug() << "Port open now?" << serial->isOpen();
-    sendCommand(PumpB, BasicCommand::GetVersion);
+    bool first = sendCommand(PumpB, BasicCommand::GetVersion);
     return true;
 }
 
@@ -54,7 +54,7 @@ bool PumpInterface::sendCommand(int addr, BasicCommand cmd, double value) {
     }
 
     QByteArray packet;
-    packet.append(static_cast<char>(addr));     // raw address byte
+    packet.append(addr);     // raw address byte
     packet.append(buildCommand(cmd, value));    // ASCII + '\r'
 
     qDebug() << "Sending:" << packet;

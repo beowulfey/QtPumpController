@@ -13,7 +13,7 @@ public:
     explicit PumpInterface(QObject *parent = nullptr);
     ~PumpInterface();
 
-    bool openPort(const QString &portName, qint32 baudRate = QSerialPort::Baud9600);
+    bool openPort(const QString &portName, qint32 baudRate = QSerialPort::Baud19200);
     void closePort();
 
     enum class BasicCommand {
