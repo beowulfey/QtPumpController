@@ -4,6 +4,9 @@
 PumpInterface::PumpInterface(QObject *parent) : QObject(parent), serial(new QSerialPort(this)) {
     connect(serial, &QSerialPort::readyRead, this, &PumpInterface::handleReadyRead);
     connect(serial, &QSerialPort::errorOccurred, this, &PumpInterface::handleError);
+    connect(serial, &QSerialPort::readyRead, this, []() {
+        qDebug() << "readyRead() fired!";
+    });
 }
 
 PumpInterface::~PumpInterface() {
@@ -21,6 +24,10 @@ bool PumpInterface::openPort(const QString &portName, qint32 baudRate) {
     serial->setParity(QSerialPort::NoParity);
     serial->setStopBits(QSerialPort::OneStop);
     serial->setFlowControl(QSerialPort::NoFlowControl);
+    serial->setDataTerminalReady(true);
+    serial->setRequestToSend(true);
+
+    qDebug() << "Port open yet?" << serial->isOpen();
 
     if (!serial->open(QIODevice::ReadWrite)) {
         emit errorOccurred("Failed to open port: " + serial->errorString());
@@ -29,6 +36,7 @@ bool PumpInterface::openPort(const QString &portName, qint32 baudRate) {
 
     qDebug() << serial->portName();
     sendCommand(PumpA, BasicCommand::GetVersion);
+    qDebug() << "Port open now?" << serial->isOpen();
     sendCommand(PumpB, BasicCommand::GetVersion);
     return true;
 }
@@ -45,8 +53,14 @@ bool PumpInterface::sendCommand(int addr, BasicCommand cmd, double value) {
         return false;
     }
 
-    QByteArray packet = addr + buildCommand(cmd, value);
+    QByteArray packet;
+    packet.append(static_cast<char>(addr));     // raw address byte
+    packet.append(buildCommand(cmd, value));    // ASCII + '\r'
+
+    qDebug() << "Sending:" << packet;
+
     qint64 bytesWritten = serial->write(packet);
+    qDebug() << "return" << bytesWritten;
     return bytesWritten == packet.size();
 }
 
@@ -74,15 +88,14 @@ QByteArray PumpInterface::buildCommand(BasicCommand cmd, double value) {
         break;
     }
 
-    QByteArray packet;
-    packet.append(startByte);
-    packet.append(payload);
-    packet.append(endByte);
-    return packet;
+    payload.append('\r'); // Required terminator
+    return payload;
+
 }
 
 void PumpInterface::handleReadyRead() {
     QByteArray data = serial->readAll();
+    qDebug() <<" Data detected" <<data;
     emit dataReceived(data);
 }
 
