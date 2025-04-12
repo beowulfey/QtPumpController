@@ -14,6 +14,7 @@ SOURCES += \
     main.cpp \
     plotwidget.cpp \
     protocol.cpp \
+    pumpcommandworker.cpp \
     pumpcontroller.cpp \
     $$PWD/libs/qcustomplot/qcustomplot.cpp \
     pumpinterface.cpp \
@@ -24,6 +25,7 @@ HEADERS += \
     condmeter.h \
     plotwidget.h \
     protocol.h \
+    pumpcommandworker.h \
     pumpcontroller.h \
     $$PWD/libs/qcustomplot/qcustomplot.h \
     pumpinterface.h \
