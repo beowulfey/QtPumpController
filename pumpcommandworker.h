@@ -6,13 +6,18 @@
 
 #include <QObject>
 #include <QQueue>
-#include "pumpinterface.h"  // Forward declaration or include depending on structure
+
+// Forward declaration to avoid circular include
+class PumpInterface;
+
+#include "pumpcommands.h"  // Forward declaration or include depending on structure
 
 struct PumpCommand {
-    int address;
+    QString name;
     BasicCommand cmd;
     double value;
 };
+
 
 class PumpCommandWorker : public QObject {
     Q_OBJECT

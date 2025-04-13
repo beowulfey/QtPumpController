@@ -1,18 +1,14 @@
 #ifndef PUMPINTERFACE_H
 #define PUMPINTERFACE_H
 
+
 #include <QObject>
 #include <QSerialPort>
 #include <QSerialPortInfo>
+#include <QThread>
+#include "pumpcommandworker.h"
 
-enum class BasicCommand {
-    Start,
-    Stop,
-    SetFlowRate,
-    SetDirection,
-    GetStatus,
-    GetVersion
-};
+#include "pumpcommands.h"
 
 struct Pump {
     int address;
@@ -29,8 +25,9 @@ public:
     bool openPort(const QString &portName, qint32 baudRate = QSerialPort::Baud19200);
     void closePort();
 
-    void broadcastCommand(BasicCommand cmd, double value = 0.0);
+    //void broadcastCommand(BasicCommand cmd, double value = 0.0);
     void sendToPump(const QString &name, BasicCommand cmd, double value = 0.0);
+    void shutdown();
 
 signals:
     void dataReceived(const QString &data);
@@ -41,12 +38,14 @@ private slots:
     void handleError(QSerialPort::SerialPortError error);
 
 private:
+    QThread *workerThread;
+    PumpCommandWorker *commandWorker;
     QByteArray serialBuffer;
     QSerialPort *serial;
     QVector<Pump> pumps;
 
     QByteArray buildCommand(BasicCommand cmd, double value);
-    bool sendCommand(int addr, BasicCommand cmd, double value);
+    bool sendCommand(int addr, BasicCommand cmd, double value = 0.0);
 };
 
 #endif // PUMPINTERFACE_H

@@ -25,6 +25,7 @@ HEADERS += \
     condmeter.h \
     plotwidget.h \
     protocol.h \
+    pumpcommands.h \
     pumpcommandworker.h \
     pumpcontroller.h \
     $$PWD/libs/qcustomplot/qcustomplot.h \

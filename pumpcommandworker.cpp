@@ -1,5 +1,6 @@
 // pumpcommandworker.cpp
 #include "pumpcommandworker.h"
+#include "pumpinterface.h"
 #include <QDebug>
 
 PumpCommandWorker::PumpCommandWorker(PumpInterface* interface, QObject* parent)
@@ -22,8 +23,8 @@ void PumpCommandWorker::processNext() {
     }
 
     PumpCommand cmd = commandQueue.dequeue();
-    qDebug() << "Sending command to pump" << cmd.address;
-    pumpInterface->sendCommand(cmd.address, cmd.cmd, cmd.value);
+    qDebug() << "Worker sending command to pump" << cmd.name;      // << cmd.cmd <<cmd.value;
+    pumpInterface->sendToPump(cmd.name, cmd.cmd, cmd.value);
     processing = true;
 }
 

@@ -54,7 +54,6 @@ PumpController::PumpController(QWidget *parent)
     //condTimer->setSingleShot(0);
 
 
-
     // Set default settings for everything
     ui->spinFlowRate->setValue(0.4);
     ui->spinPac->setValue(0);
@@ -220,11 +219,14 @@ void PumpController::openCOMsDialog()
 
 
 void PumpController::setCOMs(const QString& cond, const QString& pump)
+// Need to add timeout to this
 {
     if (pump != "None") {
         pumpComPort = pump;
         writeToConsole("PUMP PORT SELECTED: " + pumpComPort, UiGreen);
         initiatePumps();
+        //commandWorker = new PumpCommandWorker(pumps, this);  // parent is QObject, and this is PumpInterface
+        //commandWorker->start();
     } else {
         pumpComPort.clear();
         writeToConsole("No pump port selected!", UiRed);
@@ -244,12 +246,20 @@ void PumpController::initiatePumps()
 // For this, Pump A is address 0, Pump B is address 1
 // This is true in all cases.
 {
+    if (pumpInterface) {
+        pumpInterface->shutdown();
+        delete pumpInterface;
+        pumpInterface = nullptr;
+    }
+
+
     if (! pumpComPort.isEmpty())
     {
-        pumps = new PumpInterface(this);
-        pumps->openPort(pumpComPort);
-        connect(pumps, &PumpInterface::errorOccurred, this, &PumpController::receivePumpError);
-        connect(pumps, &PumpInterface::dataReceived, this, &PumpController::receivePumpResponse);
+        pumpInterface = new PumpInterface(this);
+        pumpInterface->openPort(pumpComPort);
+        connect(pumpInterface, &PumpInterface::errorOccurred, this, &PumpController::receivePumpError);
+        connect(pumpInterface, &PumpInterface::dataReceived, this, &PumpController::receivePumpResponse);
+
     }
 }
 

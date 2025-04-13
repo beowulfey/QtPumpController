@@ -1,6 +1,5 @@
 #include "pumpinterface.h"
 #include <QDebug>
-#include <QThread>
 #include <QTimer>
 
 
@@ -25,10 +24,29 @@ PumpInterface::PumpInterface(QObject *parent)
         {0, "PumpA"},
         {1, "PumpB"}
     };
+    workerThread = new QThread;
+    commandWorker = new PumpCommandWorker(this);
+    commandWorker->moveToThread(workerThread);
+    workerThread->start();
+
 }
 
+void PumpInterface::shutdown() {
+    if (workerThread) {
+        workerThread->quit();
+        workerThread->wait();
+        delete workerThread;
+        workerThread = nullptr;
+    }
+    // this is equivalent to closePort()
+    if (serial->isOpen()) {
+        serial->close();
+    }
+}
+
+
 PumpInterface::~PumpInterface() {
-    closePort();
+    shutdown();
 }
 
 bool PumpInterface::openPort(const QString &portName, qint32 baudRate) {
@@ -54,8 +72,7 @@ bool PumpInterface::openPort(const QString &portName, qint32 baudRate) {
     qDebug() << "Port opened successfully:" << serial->portName();
 
     // Send initial commands (like GetVersion)
-    broadcastCommand(BasicCommand::GetVersion)
-    //sendToPump("PumpB", BasicCommand::GetVersion);
+    //broadcastCommand(BasicCommand::GetVersion);
     return true;
 }
 
@@ -65,12 +82,13 @@ void PumpInterface::closePort() {
     }
 }
 
-void PumpInterface::broadcastCommand(BasicCommand cmd, double value) {
+/* Removed this "send to both" option -- too fast, and can't really use in threads
+ * void PumpInterface::broadcastCommand(BasicCommand cmd, double value) {
     for (const Pump &pump : pumps) {
         sendCommand(pump.address, cmd, value);
         //QThread::msleep(50);
     }
-}
+}*/
 
 void PumpInterface::sendToPump(const QString &name, BasicCommand cmd, double value) {
     for (const Pump &pump : pumps) {
@@ -83,6 +101,7 @@ void PumpInterface::sendToPump(const QString &name, BasicCommand cmd, double val
 }
 
 bool PumpInterface::sendCommand(int addr, BasicCommand cmd, double value) {
+    // Write the packet to the address of the pump
     if (!serial->isOpen()) {
         emit errorOccurred("Serial port not open.");
         return false;

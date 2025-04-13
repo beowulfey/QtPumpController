@@ -5,7 +5,7 @@
 #include <QList>
 #include "tablemodel.h"
 #include "protocol.h"
-
+//#include "pumpcommandworker.h"
 #include "pumpinterface.h"
 
 QT_BEGIN_NAMESPACE
@@ -76,7 +76,7 @@ public slots:
 
 private:
     Ui::PumpController *ui;
-
+    //PumpCommandWorker *commandWorker;
     QString pumpComPort;
     QString condComPort;
     //float offset;
@@ -87,6 +87,6 @@ private:
     //QTimer *condTimer;
     Protocol *currProtocol;
     bool protocolChanged;
-    PumpInterface *pumps;
+    PumpInterface *pumpInterface;
 };
 #endif // PUMPCONTROLLER_H
