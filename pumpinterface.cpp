@@ -1,5 +1,6 @@
 #include "pumpinterface.h"
 #include <QDebug>
+#include <QThread>
 #include <QTimer>
 
 
@@ -21,8 +22,8 @@ PumpInterface::PumpInterface(QObject *parent)
 
     // Initialize pumps
     pumps = {
-        {0, "Pump A"},
-        {1, "Pump B"}
+        {0, "PumpA"},
+        {1, "PumpB"}
     };
 }
 
@@ -53,7 +54,8 @@ bool PumpInterface::openPort(const QString &portName, qint32 baudRate) {
     qDebug() << "Port opened successfully:" << serial->portName();
 
     // Send initial commands (like GetVersion)
-    broadcastCommand(BasicCommand::GetVersion);
+    broadcastCommand(BasicCommand::GetVersion)
+    //sendToPump("PumpB", BasicCommand::GetVersion);
     return true;
 }
 
@@ -66,6 +68,7 @@ void PumpInterface::closePort() {
 void PumpInterface::broadcastCommand(BasicCommand cmd, double value) {
     for (const Pump &pump : pumps) {
         sendCommand(pump.address, cmd, value);
+        //QThread::msleep(50);
     }
 }
 
@@ -87,11 +90,11 @@ bool PumpInterface::sendCommand(int addr, BasicCommand cmd, double value) {
 
     QByteArray command = buildCommand(cmd, value);
     QByteArray packet;
-    packet.append(static_cast<char>(addr));
+    packet.append(static_cast<char>('0' + addr));
     packet.append(command);
 
     qint64 bytesWritten = serial->write(packet);
-    qDebug() << "Sending to pump" << addr << ":" << packet.toHex(' ');
+    qDebug() << "Sending to pump" << addr << ":" << packet << packet.toHex(' ');
     return bytesWritten == packet.size();
 }
 
@@ -133,7 +136,7 @@ void PumpInterface::handleReadyRead() {
         if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
             // We found a complete frame
             QByteArray payload = serialBuffer.mid(startIndex + 1, endIndex - startIndex - 1);
-            QString readable = QString::fromUtf8(payload).trimmed();
+            QString readable = QString::fromLatin1(payload);
             qDebug() << "Parsed payload:" << readable;
             emit dataReceived(readable);
 
@@ -146,7 +149,7 @@ void PumpInterface::handleReadyRead() {
     }
 
     // Optionally print buffer contents during debugging
-    qDebug() << "Current buffer:" << serialBuffer.toHex(' ');
+   // qDebug() << "Current buffer:" << serialBuffer.toHex(' ');
 }
 
 
