@@ -23,7 +23,7 @@ void PumpCommandWorker::processNext() {
     }
 
     AddressedCommand cmd = commandQueue.dequeue();
-    qDebug() << "Worker sending command to pump" << cmd.name;      // << cmd.cmd <<cmd.value;
+    qDebug() << "Worker sending command to " << cmd.name;      // << cmd.cmd <<cmd.value;
     //pumpInterface->sendToPump(cmd.name, cmd.cmd, cmd.value);
     emit pumpCommandReady(cmd.name, cmd.cmd, cmd.value);
     processing = true;

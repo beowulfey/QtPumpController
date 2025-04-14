@@ -16,11 +16,12 @@ enum class PumpCommand {
     Start,
     Stop,
     GetVersion,
-    ShowRate,
+    RateFunction,
     SetPhase,
     SetFlowRate,
+    SetVolume,
     SetFlowDirection,
-    SetLinearRamp,
+    RampFunction,
     SetRampTime,
 
 };

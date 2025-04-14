@@ -103,6 +103,7 @@ void PumpInterface::sendToPump(const QString &name, PumpCommand cmd, QString val
 
     for (const Pump &pump : pumps) {
         if (pump.name == name) {
+            qDebug() << "sendToPump: #"<<pump.address;
             sendCommand(pump.address, cmd, value);
             return;
         }
@@ -117,52 +118,94 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
 
     QVector<AddressedCommand> cmdList;
     // Queue Pump A commands
-    qDebug() << "PUMP A CMDS!!!!";
+    //qDebug() << "PUMP A CMDS!!!!";
     foreach (PumpPhase phase, aPhases)
     {
-        qDebug() << "########################";
-        qDebug() << "PHASE: " << phase.phaseNumber;
-        qDebug() << "FUNCTION: " << phase.function;
-        if (phase.function == "RAT"){
+    //    qDebug() << "########################";
+    //    qDebug() << "PHASE: " << phase.phaseNumber;
+    //    qDebug() << "FUNCTION: " << phase.function;
+
+        AddressedCommand phaseNumber;
+        phaseNumber.name = "PumpA";
+        phaseNumber.cmd = PumpCommand::SetPhase;
+        phaseNumber.value = QString::number(phase.phaseNumber);
+
+        commandWorker->enqueueCommand(phaseNumber);
+
+        if (phase.function == "RAT")
+        {
             qDebug() << "RATE: " << phase.rate;
             qDebug() << "VOLUME: " << phase.volume;
-            qDebug() << "DIR: " << phase.direction;
+            //qDebug() << "DIR: " << phase.direction;
+
+            AddressedCommand phaseFunc;
+            phaseFunc.name = "PumpA";
+            phaseFunc.cmd = PumpCommand::SetFlowRate;
+            phaseFunc.value = QString::number(phase.rate);
+
+            AddressedCommand phaseVol;
+            phaseVol.name = "PumpA";
+            phaseVol.cmd = PumpCommand::SetVolume;
+            phaseVol.value = QString::number(phase.volume);
+
+            commandWorker->enqueueCommand(phaseFunc);
+            commandWorker->enqueueCommand(phaseVol);
         }
         else if (phase.function == "LIN")
         {
-            qDebug() << "RATE: " << phase.rate;
-            qDebug() << "TIME: " << phase.time;
+       //     qDebug() << "RATE: " << phase.rate;
+       //     qDebug() << "TIME: " << phase.time;
         }
         else if (phase.function == "PAUSE")
         {
-            qDebug() << "TIME: " << phase.time;
+        //    qDebug() << "TIME: " << phase.time;
         }
         else {
-            qDebug() <<"STOP?";
+        //    qDebug() <<"STOP?";
         }
     }
-    qDebug() << "PUMP B CMDS!!!!";
+    //qDebug() << "PUMP B CMDS!!!!";
     foreach (PumpPhase phase, bPhases)
     {
-        qDebug() << "########################";
-        qDebug() << "PHASE: " << phase.phaseNumber;
-        qDebug() << "FUNCTION: " << phase.function;
+        //qDebug() << "########################";
+        //qDebug() << "PHASE: " << phase.phaseNumber;
+        AddressedCommand phaseNumber;
+        phaseNumber.name = "PumpB";
+        phaseNumber.cmd = PumpCommand::SetPhase;
+        phaseNumber.value = QString::number(phase.phaseNumber);
+
+        commandWorker->enqueueCommand(phaseNumber);
+
+       // qDebug() << "FUNCTION: " << phase.function;
         if (phase.function == "RAT"){
-            qDebug() << "RATE: " << phase.rate;
-            qDebug() << "VOLUME: " << phase.volume;
-            qDebug() << "DIR: " << phase.direction;
+        //    qDebug() << "RATE: " << phase.rate;
+         //   qDebug() << "VOLUME: " << phase.volume;
+         //   qDebug() << "DIR: " << phase.direction;
+            AddressedCommand phaseFunc;
+            phaseFunc.name = "PumpB";
+            phaseFunc.cmd = PumpCommand::SetFlowRate;
+            phaseFunc.value = QString::number(phase.rate);
+
+            AddressedCommand phaseVol;
+            phaseVol.name = "PumpB";
+            phaseVol.cmd = PumpCommand::SetVolume;
+            phaseVol.value = QString::number(phase.volume);
+
+            commandWorker->enqueueCommand(phaseFunc);
+            commandWorker->enqueueCommand(phaseVol);
+
         }
         else if (phase.function == "LIN")
         {
-            qDebug() << "RATE: " << phase.rate;
-            qDebug() << "TIME: " << phase.time;
+          //  qDebug() << "RATE: " << phase.rate;
+          //  qDebug() << "TIME: " << phase.time;
         }
         else if (phase.function == "PAUSE")
         {
-            qDebug() << "TIME: " << phase.time;
+          //  qDebug() << "TIME: " << phase.time;
         }
         else {
-            qDebug() <<"STOP?";
+         //   qDebug() <<"STOP?";
         }
     }
 }
@@ -193,17 +236,23 @@ QByteArray PumpInterface::buildCommand(PumpCommand cmd, QString value) {
 
     switch (cmd) {
     case PumpCommand::Start:
+        qDebug() << "Start selected";
         // RUN [phase] will start either the current phase or this number
         payload = QString("RUN%1").arg(value.toFloat(),0,'f', 0).toUtf8();
         break;
     case PumpCommand::Stop:
+        qDebug() << "Stop selected";
         payload = "STP";
         break;
-    case PumpCommand::ShowRate:
-        payload = QString("RAT").toUtf8();
+    case PumpCommand::RateFunction:
+        payload = QString("FUNRAT").toUtf8();
         break;
     case PumpCommand::SetFlowRate:
-        payload = QString("FUNRAT%1UM").arg(value.toFloat(), 0, 'f', 2).toUtf8();
+        qDebug() << "Set Flow Rate selected";
+        payload = QString("RAT%1UM").arg(value.toFloat(), 0, 'f', 2).toUtf8();
+        break;
+    case PumpCommand::SetVolume:
+        payload = QString("VOL%1UL").arg(value.toFloat(),0,'f',2).toUtf8();
         break;
     case PumpCommand::SetFlowDirection:
         // Any value given will set to withdraw
@@ -212,7 +261,7 @@ QByteArray PumpInterface::buildCommand(PumpCommand cmd, QString value) {
     case PumpCommand::SetPhase:
         payload = QString("PHN%1").arg(value.toInt()).toUtf8();
         break;
-    case PumpCommand::SetLinearRamp:
+    case PumpCommand::RampFunction:
         payload = "FUNLIN";
         break;
     case PumpCommand::SetRampTime:
@@ -225,6 +274,7 @@ QByteArray PumpInterface::buildCommand(PumpCommand cmd, QString value) {
     }
 
     payload.append('\r'); // Required carriage return
+    qDebug() << "buildCommand built as: " << payload;
     return payload;
 }
 
@@ -239,7 +289,7 @@ void PumpInterface::handleReadyRead() {
             // We found a complete frame
             QByteArray payload = serialBuffer.mid(startIndex + 1, endIndex - startIndex - 1);
             QString readable = QString::fromLatin1(payload);
-            qDebug() << "Parsed payload:" << readable;
+            qDebug() << "Parsed response:" << readable;
             emit dataReceived(readable);
 
             // Remove processed data from buffer
