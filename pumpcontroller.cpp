@@ -1,3 +1,6 @@
+#include <QtMath>
+#include <QDebug>
+
 #include "pumpcontroller.h"
 #include "ui_pumpcontroller.h"
 #include "comsdialog.h"
@@ -527,3 +530,109 @@ void PumpController::timerTick()
 
     }
 }
+
+
+QVector<double> PumpController::calculateFlowRates(double concentration) const {
+    double pac = ui->spinPac->value();
+    double pbc = ui->spinPbc->value();
+    double totalFlowRate = ui->spinFlowRate->value();
+
+    if (std::abs(pbc - pac) < 1e-6) {
+        return {0.0, 0.0};
+    }
+
+    double bRate = ((concentration - pac) / (pbc - pac)) * totalFlowRate;
+    double aRate = totalFlowRate - bRate;
+
+    aRate = std::round(std::abs(aRate) * 1000.0) / 1000.0;
+    bRate = std::round(std::abs(bRate) * 1000.0) / 1000.0;
+
+    return {aRate, bRate};
+}
+
+
+
+QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const QVector<QVector<double>>& segments) const {
+    QVector<PumpPhase> phasesA;
+    QVector<PumpPhase> phasesB;
+
+    int phaseCounter = 1; // Starting at 1 or 2 depending on convention
+    for (const auto& row : segments) {
+        if (row.size() < 3) continue; // Skip invalid rows
+
+        double startConc = row[0];
+        double endConc = row[1];
+        double timeMin = row[2];
+
+        QVector<double> startRates = calculateFlowRates(startConc); // [a_rate, b_rate]
+        QVector<double> endRates = calculateFlowRates(endConc);
+
+        if (qFuzzyCompare(startConc, endConc)) {
+            // Constant rate segment — RAT
+            double aRate = startRates[0];
+            double bRate = startRates[1];
+
+            double volume = aRate * timeMin; // volume in µL
+            PumpPhase phaseA;
+            phaseA.phaseNumber = phaseCounter++;
+            phaseA.function = "RAT";
+            phaseA.rate = aRate;
+            phaseA.volume = volume;
+            phaseA.direction = "INF";
+            phasesA.append(phaseA);
+
+            volume = bRate * timeMin;
+            PumpPhase phaseB;
+            phaseB.phaseNumber = phaseCounter++;
+            phaseB.function = "RAT";
+            phaseB.rate = bRate;
+            phaseB.volume = volume;
+            phaseB.direction = "INF";
+            phasesB.append(phaseB);
+        } else {
+            // Linear ramp segment — LIN (two parts)
+            int minutes = static_cast<int>(timeMin);
+            int seconds = static_cast<int>((timeMin - minutes) * 60);
+            int tenths = static_cast<int>(qRound(((timeMin - minutes) * 60 - seconds) * 10));
+
+            // Phase A start
+            PumpPhase phaseA_start;
+            phaseA_start.phaseNumber = phaseCounter++;
+            phaseA_start.function = "LIN";
+            phaseA_start.rate = startRates[0];
+            phaseA_start.time = QString("%1:%2").arg(0, 2, 10, QLatin1Char('0')).arg(minutes, 2, 10, QLatin1Char('0'));
+            phaseA_start.direction = "INF";
+            phasesA.append(phaseA_start);
+
+            // Phase A end
+            PumpPhase phaseA_end;
+            phaseA_end.phaseNumber = phaseCounter++;
+            phaseA_end.function = "LIN";
+            phaseA_end.rate = endRates[0];
+            phaseA_end.time = QString("%1:%2").arg(seconds, 2, 10, QLatin1Char('0')).arg(tenths, 2, 10, QLatin1Char('0'));
+            phaseA_end.direction = "INF";
+            phasesA.append(phaseA_end);
+
+            // Phase B start
+            PumpPhase phaseB_start;
+            phaseB_start.phaseNumber = phaseCounter++;
+            phaseB_start.function = "LIN";
+            phaseB_start.rate = startRates[1];
+            phaseB_start.time = QString("%1:%2").arg(0, 2, 10, QLatin1Char('0')).arg(minutes, 2, 10, QLatin1Char('0'));
+            phaseB_start.direction = "INF";
+            phasesB.append(phaseB_start);
+
+            // Phase B end
+            PumpPhase phaseB_end;
+            phaseB_end.phaseNumber = phaseCounter++;
+            phaseB_end.function = "LIN";
+            phaseB_end.rate = endRates[1];
+            phaseB_end.time = QString("%1:%2").arg(seconds, 2, 10, QLatin1Char('0')).arg(tenths, 2, 10, QLatin1Char('0'));
+            phaseB_end.direction = "INF";
+            phasesB.append(phaseB_end);
+        }
+    }
+
+    return { phasesA, phasesB };
+}
+

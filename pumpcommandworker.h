@@ -12,9 +12,9 @@ class PumpInterface;
 
 #include "pumpcommands.h"  // Forward declaration or include depending on structure
 
-struct PumpCommand {
+struct AddressedCommand {
     QString name;
-    BasicCommand cmd;
+    PumpCommand cmd;
     double value;
 };
 
@@ -29,11 +29,11 @@ public:
     explicit PumpCommandWorker(PumpInterface* interface, QObject* parent = nullptr);
 
 signals:
-    void pumpCommandReady(const QString& name, BasicCommand cmd, double value);
+    void pumpCommandReady(const QString& name, PumpCommand cmd, double value);
 
 
 public slots:
-    void enqueueCommand(const PumpCommand& command);
+    void enqueueCommand(const AddressedCommand& command);
 
 private slots:
     void onResponseReceived(const QString& response);
@@ -41,7 +41,7 @@ private slots:
 private:
     void processNext();
 
-    QQueue<PumpCommand> commandQueue;
+    QQueue<AddressedCommand> commandQueue;
     PumpInterface* pumpInterface;
     bool processing = false;
 };

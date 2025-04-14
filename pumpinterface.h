@@ -22,15 +22,13 @@ public:
     explicit PumpInterface(QObject *parent = nullptr);
     ~PumpInterface();
 
-    bool connectToPumps(const QString &portName, qint32 baudRate = QSerialPort::Baud19200);
-    //void closePort();
-
-    void broadcastCommand(BasicCommand cmd, double value = 0.0); // for basic stuff, like versions
-    void sendToPump(const QString &name, BasicCommand cmd, double value = 0.0);
+    bool connectToPumps(const QString &portName, qint32 baudRate = QSerialPort::Baud19200);           // initiates connections
+    void broadcastCommand(PumpCommand cmd, double value = 0.0);                                      // for basic stuff, like versions
+    void sendToPump(const QString &name, PumpCommand cmd, double value = 0.0);
     void shutdown();
 
 public slots:
-    void handlePumpCommand(const QString& name, BasicCommand cmd, double value);
+    void handlePumpCommand(const QString& name, PumpCommand cmd, double value);
 
 
 signals:
@@ -48,8 +46,8 @@ private:
     QSerialPort *serial;
     QVector<Pump> pumps;
 
-    QByteArray buildCommand(BasicCommand cmd, double value);
-    bool sendCommand(int addr, BasicCommand cmd, double value = 0.0);
+    QByteArray buildCommand(PumpCommand cmd, double value);
+    bool sendCommand(int addr, PumpCommand cmd, double value = 0.0);
 };
 
 #endif // PUMPINTERFACE_H

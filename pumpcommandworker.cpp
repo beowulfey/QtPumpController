@@ -9,7 +9,7 @@ PumpCommandWorker::PumpCommandWorker(PumpInterface* interface, QObject* parent)
             this, &PumpCommandWorker::onResponseReceived);
 }
 
-void PumpCommandWorker::enqueueCommand(const PumpCommand& command) {
+void PumpCommandWorker::enqueueCommand(const AddressedCommand& command) {
     commandQueue.enqueue(command);
     if (!processing) {
         processNext();
@@ -22,7 +22,7 @@ void PumpCommandWorker::processNext() {
         return;
     }
 
-    PumpCommand cmd = commandQueue.dequeue();
+    AddressedCommand cmd = commandQueue.dequeue();
     qDebug() << "Worker sending command to pump" << cmd.name;      // << cmd.cmd <<cmd.value;
     //pumpInterface->sendToPump(cmd.name, cmd.cmd, cmd.value);
     emit pumpCommandReady(cmd.name, cmd.cmd, cmd.value);

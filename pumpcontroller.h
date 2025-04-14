@@ -14,6 +14,15 @@ class PumpController;
 }
 QT_END_NAMESPACE
 
+struct PumpPhase {
+    int phaseNumber = 0;      // The phase number sent via PHN command
+    QString function;         // "RAT", "LIN", "STP"
+    double rate = 0.0;        // Flow rate in µL/min
+    double volume;           // Optional — only used for "RAT"
+    QString time;             // Optional — only used for "LIN"
+    QString direction = "INF"; // "INF" or "WDR", default is "INF"
+};
+
 class PumpController : public QMainWindow
 {
     Q_OBJECT
@@ -21,6 +30,8 @@ class PumpController : public QMainWindow
 public:
     PumpController(QWidget *parent = nullptr);
     ~PumpController();
+
+
 
 public slots:
     void writeToConsole(const QString& text, const QColor& color = QColor());
@@ -47,6 +58,9 @@ public slots:
     void receivePumpResponse(const QString& msg);
 
     void timerTick();
+
+    QVector<QVector<PumpPhase>> generatePumpPhases(const QVector<QVector<double>>& segments) const;
+
 
     //void timerTick();
 
@@ -88,5 +102,8 @@ private:
     Protocol *currProtocol;
     bool protocolChanged;
     PumpInterface *pumpInterface;
+
+
+    QVector<double> calculateFlowRates(double concentration) const;
 };
 #endif // PUMPCONTROLLER_H

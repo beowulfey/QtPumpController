@@ -5,8 +5,8 @@
 
 /* Interface for the two New Era NE-1002X pumps
  * Example usage:
- *  pumpInterface->broadcastCommand(BasicCommand::Start);
- *  pumpInterface->sendToPump("Pump A", BasicCommand::SetFlowRate, 1.25);
+ *  pumpInterface->broadcastCommand(PumpCommand::Start);
+ *  pumpInterface->sendToPump("Pump A", PumpCommand::SetFlowRate, 1.25);
  */
 
 
@@ -54,7 +54,7 @@ PumpInterface::~PumpInterface() {
     shutdown();
 }
 
-void PumpInterface::handlePumpCommand(const QString& name, BasicCommand cmd, double value) {
+void PumpInterface::handlePumpCommand(const QString& name, PumpCommand cmd, double value) {
     sendToPump(name, cmd, value);
 }
 
@@ -82,14 +82,14 @@ bool PumpInterface::connectToPumps(const QString &portName, qint32 baudRate) {
 
     // Send initial commands (like GetVersion)
     //emit dataReceived("Connecting to pumps! ");
-    broadcastCommand(BasicCommand::GetVersion);
+    broadcastCommand(PumpCommand::GetVersion);
     return true;
 }
 
 
-void PumpInterface::broadcastCommand(BasicCommand cmd, double value) {
+void PumpInterface::broadcastCommand(PumpCommand cmd, double value) {
     for (const Pump &pump : pumps) {
-        PumpCommand command;
+        AddressedCommand command;
         command.name = pump.name;
         command.cmd = cmd;
         command.value = value;
@@ -97,7 +97,10 @@ void PumpInterface::broadcastCommand(BasicCommand cmd, double value) {
     }
 }
 
-void PumpInterface::sendToPump(const QString &name, BasicCommand cmd, double value) {
+void PumpInterface::sendToPump(const QString &name, PumpCommand cmd, double value) {
+    // Primary reference function -- used externally. Requires the name of the pump
+    // (which is PumpA or PumpB)
+
     for (const Pump &pump : pumps) {
         if (pump.name == name) {
             sendCommand(pump.address, cmd, value);
@@ -107,13 +110,16 @@ void PumpInterface::sendToPump(const QString &name, BasicCommand cmd, double val
     emit errorOccurred("Pump with name " + name + " not found.");
 }
 
-bool PumpInterface::sendCommand(int addr, BasicCommand cmd, double value) {
+
+// Private functions
+
+bool PumpInterface::sendCommand(int addr, PumpCommand cmd, double value) {
+    // Internal function, not for public use.
     // Write the packet to the address of the pump
     if (!serial->isOpen()) {
         emit errorOccurred("Serial port not open.");
         return false;
     }
-
     QByteArray command = buildCommand(cmd, value);
     QByteArray packet;
     packet.append(static_cast<char>('0' + addr));
@@ -124,26 +130,30 @@ bool PumpInterface::sendCommand(int addr, BasicCommand cmd, double value) {
     return bytesWritten == packet.size();
 }
 
-QByteArray PumpInterface::buildCommand(BasicCommand cmd, double value) {
+QByteArray PumpInterface::buildCommand(PumpCommand cmd, double value) {
+    // Base function. Look up the command in our enum, then convert to the
+    // correct pump terminology
     QByteArray payload;
 
     switch (cmd) {
-    case BasicCommand::Start:
-        payload = "RUN";
+    case PumpCommand::Start:
+        // RUN [phase] will start either the current phase or this number
+        payload = QString("RUN%1").arg(value,0,'f', 0).toUtf8();
         break;
-    case BasicCommand::Stop:
+    case PumpCommand::Stop:
         payload = "STP";
         break;
-    case BasicCommand::SetFlowRate:
-        payload = QString("RAT%1").arg(value, 0, 'f', 2).toUtf8();
+    case PumpCommand::SetFlowRate:
+        payload = QString("FUNRAT%1").arg(value, 0, 'f', 2).toUtf8();
         break;
-    case BasicCommand::SetDirection:
-        payload = (value > 0) ? "DIR INF" : "DIR WDR";
+    case PumpCommand::SetFlowDirection:
+        // Any value given will set to withdraw
+        payload = (value > 0) ? "DIRWDR" : "DIRINF";
         break;
-    case BasicCommand::GetStatus:
-        payload = "STATUS";
+    case PumpCommand::SetPhase:
+        payload = QString("PHN%1").arg(value,0, 'f', 0).toUtf8();
         break;
-    case BasicCommand::GetVersion:
+    case PumpCommand::GetVersion:
         payload = "VER";
         break;
     }
