@@ -81,7 +81,7 @@ bool PumpInterface::connectToPumps(const QString &portName, qint32 baudRate) {
     qDebug() << "Port opened successfully:" << serial->portName();
 
     // Send initial commands (like GetVersion)
-    emit dataReceived("Connecting to pumps! ");
+    //emit dataReceived("Connecting to pumps! ");
     broadcastCommand(BasicCommand::GetVersion);
     return true;
 }
