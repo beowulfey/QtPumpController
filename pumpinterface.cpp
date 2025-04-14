@@ -122,7 +122,7 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
     {
         qDebug() << "PHASE: " << phase.phaseNumber;
         qDebug() << "FUNCTION: " << phase.function;
-        if (phase.function == "RAT"){
+        if (phase.function == "RAT" || "PAS"){
             qDebug() << "RATE: " << phase.rate;
             qDebug() << "VOLUME: " << phase.volume;
             qDebug() << "DIR: " << phase.direction;
@@ -140,7 +140,7 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
     {
         qDebug() << "PHASE: " << phase.phaseNumber;
         qDebug() << "FUNCTION: " << phase.function;
-        if (phase.function == "RAT"){
+        if (phase.function == "RAT" || "PAS"){
             qDebug() << "RATE: " << phase.rate;
             qDebug() << "VOLUME: " << phase.volume;
             qDebug() << "DIR: " << phase.direction;
