@@ -256,7 +256,7 @@ void PumpController::initiatePumps()
     if (! pumpComPort.isEmpty())
     {
         pumpInterface = new PumpInterface(this);
-        pumpInterface->openPort(pumpComPort);
+        pumpInterface->connectToPumps(pumpComPort);
         connect(pumpInterface, &PumpInterface::errorOccurred, this, &PumpController::receivePumpError);
         connect(pumpInterface, &PumpInterface::dataReceived, this, &PumpController::receivePumpResponse);
 
@@ -270,7 +270,17 @@ void PumpController::receivePumpError(const QString& err)
 
 void PumpController::receivePumpResponse(const QString& msg)
 {
-    writeToConsole(msg, UiYellow);
+    int source = msg.left(2).toInt();
+    if (source == 0) {
+        writeToConsole(QString("Pump A response: ")+ msg, UiYellow);
+    } else if (source == 1) {
+        writeToConsole(QString("Pump B response: ")+ msg, UiYellow);
+        }
+    else {
+        writeToConsole(QString("Pump Msg: ")+msg);
+    }
+
+
 }
 
 void PumpController::confirmSettings()

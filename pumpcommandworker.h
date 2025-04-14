@@ -18,12 +18,19 @@ struct PumpCommand {
     double value;
 };
 
+// Queues the commands used by PumpInterface for sending to pump.
+// Needs testing to see if every command actually sends a response.
+
 
 class PumpCommandWorker : public QObject {
     Q_OBJECT
 
 public:
     explicit PumpCommandWorker(PumpInterface* interface, QObject* parent = nullptr);
+
+signals:
+    void pumpCommandReady(const QString& name, BasicCommand cmd, double value);
+
 
 public slots:
     void enqueueCommand(const PumpCommand& command);

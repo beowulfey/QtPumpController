@@ -28,6 +28,11 @@ PumpInterface::PumpInterface(QObject *parent)
     commandWorker = new PumpCommandWorker(this);
     commandWorker->moveToThread(workerThread);
     workerThread->start();
+    connect(commandWorker, &PumpCommandWorker::pumpCommandReady,
+            this, &PumpInterface::handlePumpCommand,
+            Qt::QueuedConnection);  // <- critical!
+
+
 
 }
 
@@ -49,7 +54,11 @@ PumpInterface::~PumpInterface() {
     shutdown();
 }
 
-bool PumpInterface::openPort(const QString &portName, qint32 baudRate) {
+void PumpInterface::handlePumpCommand(const QString& name, BasicCommand cmd, double value) {
+    sendToPump(name, cmd, value);
+}
+
+bool PumpInterface::connectToPumps(const QString &portName, qint32 baudRate) {
     if (serial->isOpen()) {
         serial->close();
     }
@@ -72,23 +81,21 @@ bool PumpInterface::openPort(const QString &portName, qint32 baudRate) {
     qDebug() << "Port opened successfully:" << serial->portName();
 
     // Send initial commands (like GetVersion)
-    //broadcastCommand(BasicCommand::GetVersion);
+    emit dataReceived("Connecting to pumps! ");
+    broadcastCommand(BasicCommand::GetVersion);
     return true;
 }
 
-void PumpInterface::closePort() {
-    if (serial->isOpen()) {
-        serial->close();
+
+void PumpInterface::broadcastCommand(BasicCommand cmd, double value) {
+    for (const Pump &pump : pumps) {
+        PumpCommand command;
+        command.name = pump.name;
+        command.cmd = cmd;
+        command.value = value;
+        commandWorker->enqueueCommand(command);
     }
 }
-
-/* Removed this "send to both" option -- too fast, and can't really use in threads
- * void PumpInterface::broadcastCommand(BasicCommand cmd, double value) {
-    for (const Pump &pump : pumps) {
-        sendCommand(pump.address, cmd, value);
-        //QThread::msleep(50);
-    }
-}*/
 
 void PumpInterface::sendToPump(const QString &name, BasicCommand cmd, double value) {
     for (const Pump &pump : pumps) {
