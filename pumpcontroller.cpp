@@ -474,7 +474,12 @@ void PumpController::startProtocol()
 }
 
 void PumpController::sendProtocol()
-{}
+{
+    // Protocol phases start at Phase 2, so set offset to 1 (to skip first phase).
+    QVector<QVector<PumpPhase>> phases = generatePumpPhases(1, tableModel->getSegments());
+    pumpInterface->setPhases(phases);
+    writeToConsole("Sent protocol to pumps", UiBlue);
+}
 
 
 void PumpController::stopProtocol()
@@ -531,6 +536,7 @@ void PumpController::timerTick()
     }
 }
 
+// UTILITY FUNCTIONS (Const)
 
 QVector<double> PumpController::calculateFlowRates(double concentration) const {
     double pac = ui->spinPac->value();
@@ -552,29 +558,32 @@ QVector<double> PumpController::calculateFlowRates(double concentration) const {
 
 
 
-QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const QVector<QVector<double>>& segments) const {
+QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPhase, const QVector<QVector<double>>& segments) const {
     QVector<PumpPhase> phasesA;
     QVector<PumpPhase> phasesB;
 
-    int phaseCounter = 1; // Starting at 1 or 2 depending on convention
+    int phaseCounter = startPhase + 1; // Starting at 1 or 2 depending on convention
     for (const auto& row : segments) {
         if (row.size() < 3) continue; // Skip invalid rows
 
-        double startConc = row[0];
-        double endConc = row[1];
-        double timeMin = row[2];
+        double timeMin = row[0];
+        int startConc = row[1];
+        int endConc = row[2];
 
         QVector<double> startRates = calculateFlowRates(startConc); // [a_rate, b_rate]
         QVector<double> endRates = calculateFlowRates(endConc);
 
-        if (qFuzzyCompare(startConc, endConc)) {
+        qDebug() << startRates;
+        qDebug() <<endRates;
+
+        if (startConc == endConc) {
             // Constant rate segment — RAT
             double aRate = startRates[0];
             double bRate = startRates[1];
 
             double volume = aRate * timeMin; // volume in µL
             PumpPhase phaseA;
-            phaseA.phaseNumber = phaseCounter++;
+            phaseA.phaseNumber = phaseCounter;
             phaseA.function = "RAT";
             phaseA.rate = aRate;
             phaseA.volume = volume;
@@ -583,7 +592,7 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const QVector<QVe
 
             volume = bRate * timeMin;
             PumpPhase phaseB;
-            phaseB.phaseNumber = phaseCounter++;
+            phaseB.phaseNumber = phaseCounter;
             phaseB.function = "RAT";
             phaseB.rate = bRate;
             phaseB.volume = volume;
@@ -597,8 +606,8 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const QVector<QVe
 
             // Phase A start
             PumpPhase phaseA_start;
-            phaseA_start.phaseNumber = phaseCounter++;
-            phaseA_start.function = "LIN";
+            phaseA_start.phaseNumber = phaseCounter;
+            phaseA_start.function = "LIN_START";
             phaseA_start.rate = startRates[0];
             phaseA_start.time = QString("%1:%2").arg(0, 2, 10, QLatin1Char('0')).arg(minutes, 2, 10, QLatin1Char('0'));
             phaseA_start.direction = "INF";
@@ -606,8 +615,8 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const QVector<QVe
 
             // Phase A end
             PumpPhase phaseA_end;
-            phaseA_end.phaseNumber = phaseCounter++;
-            phaseA_end.function = "LIN";
+            phaseA_end.phaseNumber = phaseCounter+1;
+            phaseA_end.function = "LIN_END";
             phaseA_end.rate = endRates[0];
             phaseA_end.time = QString("%1:%2").arg(seconds, 2, 10, QLatin1Char('0')).arg(tenths, 2, 10, QLatin1Char('0'));
             phaseA_end.direction = "INF";
@@ -615,8 +624,8 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const QVector<QVe
 
             // Phase B start
             PumpPhase phaseB_start;
-            phaseB_start.phaseNumber = phaseCounter++;
-            phaseB_start.function = "LIN";
+            phaseB_start.phaseNumber = phaseCounter;
+            phaseB_start.function = "LIN_START";
             phaseB_start.rate = startRates[1];
             phaseB_start.time = QString("%1:%2").arg(0, 2, 10, QLatin1Char('0')).arg(minutes, 2, 10, QLatin1Char('0'));
             phaseB_start.direction = "INF";
@@ -624,13 +633,14 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const QVector<QVe
 
             // Phase B end
             PumpPhase phaseB_end;
-            phaseB_end.phaseNumber = phaseCounter++;
-            phaseB_end.function = "LIN";
+            phaseB_end.phaseNumber = phaseCounter+1;
+            phaseB_end.function = "LIN_END";
             phaseB_end.rate = endRates[1];
             phaseB_end.time = QString("%1:%2").arg(seconds, 2, 10, QLatin1Char('0')).arg(tenths, 2, 10, QLatin1Char('0'));
             phaseB_end.direction = "INF";
             phasesB.append(phaseB_end);
         }
+        phaseCounter++;
     }
 
     return { phasesA, phasesB };

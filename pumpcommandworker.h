@@ -15,7 +15,7 @@ class PumpInterface;
 struct AddressedCommand {
     QString name;
     PumpCommand cmd;
-    double value;
+    QString value;
 };
 
 // Queues the commands used by PumpInterface for sending to pump.
@@ -29,7 +29,7 @@ public:
     explicit PumpCommandWorker(PumpInterface* interface, QObject* parent = nullptr);
 
 signals:
-    void pumpCommandReady(const QString& name, PumpCommand cmd, double value);
+    void pumpCommandReady(const QString& name, PumpCommand cmd, QString value);
 
 
 public slots:

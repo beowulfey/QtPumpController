@@ -54,7 +54,7 @@ PumpInterface::~PumpInterface() {
     shutdown();
 }
 
-void PumpInterface::handlePumpCommand(const QString& name, PumpCommand cmd, double value) {
+void PumpInterface::handlePumpCommand(const QString& name, PumpCommand cmd, QString value) {
     sendToPump(name, cmd, value);
 }
 
@@ -87,7 +87,7 @@ bool PumpInterface::connectToPumps(const QString &portName, qint32 baudRate) {
 }
 
 
-void PumpInterface::broadcastCommand(PumpCommand cmd, double value) {
+void PumpInterface::broadcastCommand(PumpCommand cmd, QString value) {
     for (const Pump &pump : pumps) {
         AddressedCommand command;
         command.name = pump.name;
@@ -97,7 +97,7 @@ void PumpInterface::broadcastCommand(PumpCommand cmd, double value) {
     }
 }
 
-void PumpInterface::sendToPump(const QString &name, PumpCommand cmd, double value) {
+void PumpInterface::sendToPump(const QString &name, PumpCommand cmd, QString value) {
     // Primary reference function -- used externally. Requires the name of the pump
     // (which is PumpA or PumpB)
 
@@ -110,10 +110,54 @@ void PumpInterface::sendToPump(const QString &name, PumpCommand cmd, double valu
     emit errorOccurred("Pump with name " + name + " not found.");
 }
 
+void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
+{
+    QVector<PumpPhase> aPhases = phases.at(0);
+    QVector<PumpPhase> bPhases = phases.at(1);
+
+    QVector<AddressedCommand> cmdList;
+    // Queue Pump A commands
+    qDebug() << "PUMP A CMDS!!!!";
+    foreach (PumpPhase phase, aPhases)
+    {
+        qDebug() << "PHASE: " << phase.phaseNumber;
+        qDebug() << "FUNCTION: " << phase.function;
+        if (phase.function == "RAT"){
+            qDebug() << "RATE: " << phase.rate;
+            qDebug() << "VOLUME: " << phase.volume;
+            qDebug() << "DIR: " << phase.direction;
+        }
+        else if (phase.function == "LIN")
+        {
+            qDebug() << "TIME: " << phase.time;
+        }
+        else {
+            qDebug() <<"STOP?";
+        }
+    }
+    qDebug() << "PUMP B CMDS!!!!";
+    foreach (PumpPhase phase, bPhases)
+    {
+        qDebug() << "PHASE: " << phase.phaseNumber;
+        qDebug() << "FUNCTION: " << phase.function;
+        if (phase.function == "RAT"){
+            qDebug() << "RATE: " << phase.rate;
+            qDebug() << "VOLUME: " << phase.volume;
+            qDebug() << "DIR: " << phase.direction;
+        }
+        else if (phase.function == "LIN")
+        {
+            qDebug() << "TIME: " << phase.time;
+        }
+        else {
+            qDebug() <<"STOP?";
+        }
+    }
+}
 
 // Private functions
 
-bool PumpInterface::sendCommand(int addr, PumpCommand cmd, double value) {
+bool PumpInterface::sendCommand(int addr, PumpCommand cmd, QString value) {
     // Internal function, not for public use.
     // Write the packet to the address of the pump
     if (!serial->isOpen()) {
@@ -130,7 +174,7 @@ bool PumpInterface::sendCommand(int addr, PumpCommand cmd, double value) {
     return bytesWritten == packet.size();
 }
 
-QByteArray PumpInterface::buildCommand(PumpCommand cmd, double value) {
+QByteArray PumpInterface::buildCommand(PumpCommand cmd, QString value) {
     // Base function. Look up the command in our enum, then convert to the
     // correct pump terminology
     QByteArray payload;
@@ -138,20 +182,30 @@ QByteArray PumpInterface::buildCommand(PumpCommand cmd, double value) {
     switch (cmd) {
     case PumpCommand::Start:
         // RUN [phase] will start either the current phase or this number
-        payload = QString("RUN%1").arg(value,0,'f', 0).toUtf8();
+        payload = QString("RUN%1").arg(value.toFloat(),0,'f', 0).toUtf8();
         break;
     case PumpCommand::Stop:
         payload = "STP";
         break;
+    case PumpCommand::ShowRate:
+        payload = QString("RAT").toUtf8();
+        break;
     case PumpCommand::SetFlowRate:
-        payload = QString("FUNRAT%1").arg(value, 0, 'f', 2).toUtf8();
+        payload = QString("FUNRAT%1UM").arg(value.toFloat(), 0, 'f', 2).toUtf8();
         break;
     case PumpCommand::SetFlowDirection:
         // Any value given will set to withdraw
-        payload = (value > 0) ? "DIRWDR" : "DIRINF";
+        payload = (value.toInt() > 0) ? "DIRWDR" : "DIRINF";
         break;
     case PumpCommand::SetPhase:
-        payload = QString("PHN%1").arg(value,0, 'f', 0).toUtf8();
+        payload = QString("PHN%1").arg(value.toInt()).toUtf8();
+        break;
+    case PumpCommand::SetLinearRamp:
+        payload = "FUNLIN";
+        break;
+    case PumpCommand::SetRampTime:
+        // will be in format (00:00), for HH:MM or SS:Tenths depending on phase
+        payload = QString("TIM%1").arg(value).toUtf8();
         break;
     case PumpCommand::GetVersion:
         payload = "VER";

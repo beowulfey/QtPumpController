@@ -26,9 +26,10 @@ public:
     void broadcastCommand(PumpCommand cmd, QString value = 0);                                      // for basic stuff, like versions
     void sendToPump(const QString &name, PumpCommand cmd, QString value = 0);
     void shutdown();
+    void setPhases(const QVector<QVector<PumpPhase>> &phases);
 
 public slots:
-    void handlePumpCommand(const QString& name, PumpCommand cmd, double value);
+    void handlePumpCommand(const QString& name, PumpCommand cmd, QString value);
 
 
 signals:
@@ -46,8 +47,8 @@ private:
     QSerialPort *serial;
     QVector<Pump> pumps;
 
-    QByteArray buildCommand(PumpCommand cmd, double value);
-    bool sendCommand(int addr, PumpCommand cmd, double value = 0.0);
+    QByteArray buildCommand(PumpCommand cmd, QString value);
+    bool sendCommand(int addr, PumpCommand cmd, QString value = 0);
 };
 
 #endif // PUMPINTERFACE_H
