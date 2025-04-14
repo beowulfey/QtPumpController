@@ -309,7 +309,7 @@ void PumpController::confirmSettings()
     ui->butStartProtocol->setEnabled(1);
     //ui->butStopProtocol->setEnabled(1);
     ui->butConfirmSettings->setDisabled(1);
-    ui->spinSegTime->setMaximum(30); // # 30 minutes maximum time; limit of pump pause?
+    ui->spinSegTime->setMaximum(120); // # 30 minutes maximum time; limit of pump pause?
     ui->protocolPlot->setYAxis(ui->spinPac->value(), ui->spinPbc->value());
     ui->spinStartConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
     ui->spinEndConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
@@ -476,9 +476,9 @@ void PumpController::startProtocol()
 void PumpController::sendProtocol()
 {
     // Protocol phases start at Phase 2, so set offset to 1 (to skip first phase).
+    writeToConsole("Sent protocol to pumps", UiBlue);
     QVector<QVector<PumpPhase>> phases = generatePumpPhases(1, tableModel->getSegments());
     pumpInterface->setPhases(phases);
-    writeToConsole("Sent protocol to pumps", UiBlue);
 }
 
 
@@ -558,128 +558,156 @@ QVector<double> PumpController::calculateFlowRates(double concentration) const {
 
 
 
-QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPhase, const QVector<QVector<double>>& segments) const {
+QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPhase, const QVector<QVector<double>>& segments) {
     QVector<PumpPhase> phasesA;
     QVector<PumpPhase> phasesB;
 
-    int phaseCounterA = startPhase + 1;
+    int phaseCounterA = startPhase + 1;     // startPhase is 0 for base run or 1 for program
     int phaseCounterB = startPhase + 1;
 
-    for (const auto& row : segments) {
-        if (row.size() < 3) continue; // Skip invalid rows
+    while (std::max(phaseCounterA, phaseCounterB) <= 40)    // There are 40 phase slots available (#s 1-41) in the X1 firmware. X2 has 341. #41 is for Stop.
+    {
+        for (const auto& row : segments) {
+            if (row.size() < 3) continue; // Skip invalid rows
 
-        double timeMin = row[0];
-        int startConc = row[1];
-        int endConc = row[2];
+            double timeMin = row[0];
+            int startConc = row[1];
+            int endConc = row[2];
 
-        QVector<double> startRates = calculateFlowRates(startConc); // [a_rate, b_rate]
-        QVector<double> endRates = calculateFlowRates(endConc);
+            QVector<double> startRates = calculateFlowRates(startConc); // [a_rate, b_rate]
+            QVector<double> endRates = calculateFlowRates(endConc);
 
-        qDebug() << startRates;
-        qDebug() << endRates;
+            qDebug() << startRates;
+            qDebug() << endRates;
 
-        if (startConc == endConc) {
-            // Constant rate segment — RAT
-            double aRate = startRates[0];
-            double bRate = startRates[1];
+            if (startConc == endConc) {
+                // Constant rate segment — RAT
+                double aRate = startRates[0];
+                double bRate = startRates[1];
 
-            double totalTimeSec = timeMin * 60;
+                double totalTimeSec = timeMin * 60;
 
-            // Pump A
-            if (aRate > 0) {
-                double volume = aRate * timeMin;
-                PumpPhase phaseA;
-                phaseA.phaseNumber = phaseCounterA;
-                phaseA.function = "RAT";
-                phaseA.rate = aRate;
-                phaseA.volume = volume;
-                phaseA.direction = "INF";
-                phasesA.append(phaseA);
-            } else {
-                // Pause for pump A
-                int remaining = static_cast<int>(totalTimeSec);
-                while (remaining > 0) {
-                    int chunk = qMin(remaining, 99);
-                    PumpPhase pause;
-                    pause.phaseNumber = phaseCounterA;
-                    pause.function = "PAUSE";
-                    pause.time = QString("00:%1").arg(chunk, 2, 10, QLatin1Char('0'));
-                    phasesA.append(pause);
-                    remaining -= chunk;
+                // Pump A
+                if (aRate > 0) {
+                    double volume = aRate * timeMin;
+                    PumpPhase phaseA;
+                    phaseA.phaseNumber = phaseCounterA;
+                    phaseA.function = "RAT";
+                    phaseA.rate = aRate;
+                    phaseA.volume = volume;
+                    phaseA.direction = "INF";
+                    phasesA.append(phaseA);
+                    phaseCounterA++;
+                } else {
+                    // Pause for pump A
+                    int remaining = static_cast<int>(totalTimeSec);
+                    while (remaining > 0) {
+                        int chunk = qMin(remaining, 99);
+                        PumpPhase pause;
+                        pause.phaseNumber = phaseCounterA;
+                        pause.function = "PAUSE";
+                        pause.time = QString("00:%1").arg(chunk, 2, 10, QLatin1Char('0'));
+                        phasesA.append(pause);
+                        remaining -= chunk;
+                        phaseCounterA++;
+                    }
                 }
-            }
-            phaseCounterA++;
-            // Pump B
-            if (bRate > 0) {
-                double volume = bRate * timeMin;
-                PumpPhase phaseB;
-                phaseB.phaseNumber = phaseCounterB;
-                phaseB.function = "RAT";
-                phaseB.rate = bRate;
-                phaseB.volume = volume;
-                phaseB.direction = "INF";
-                phasesB.append(phaseB);
-            } else {
-                // Pause for pump B
-                int remaining = static_cast<int>(totalTimeSec);
-                while (remaining > 0) {
-                    int chunk = qMin(remaining, 99);
-                    PumpPhase pause;
-                    pause.phaseNumber = phaseCounterB;
-                    pause.function = "PAS";
-                    pause.time = QString("00:%1").arg(chunk, 2, 10, QLatin1Char('0'));
-                    phasesB.append(pause);
-                    remaining -= chunk;
+
+                // Pump B
+                if (bRate > 0) {
+                    double volume = bRate * timeMin;
+                    PumpPhase phaseB;
+                    phaseB.phaseNumber = phaseCounterB;
+                    phaseB.function = "RAT";
+                    phaseB.rate = bRate;
+                    phaseB.volume = volume;
+                    phaseB.direction = "INF";
+                    phasesB.append(phaseB);
+                    phaseCounterB++;
+                } else {
+                    // Pause for pump B
+                    int remaining = static_cast<int>(totalTimeSec);
+                    while (remaining > 0) {
+                        int chunk = qMin(remaining, 99);
+                        PumpPhase pause;
+                        pause.phaseNumber = phaseCounterB;
+                        pause.function = "PAUSE";
+                        pause.time = QString("00:%1").arg(chunk, 2, 10, QLatin1Char('0'));
+                        phasesB.append(pause);
+                        remaining -= chunk;
+                        phaseCounterB++;
+                    }
                 }
+
+            } else {
+                // Linear ramp segment — LIN (two parts)
+                int minutes = static_cast<int>(timeMin);
+                int seconds = static_cast<int>((timeMin - minutes) * 60);
+                int tenths = static_cast<int>(qRound(((timeMin - minutes) * 60 - seconds) * 10));
+
+                // Pump A - Start
+                PumpPhase phaseA_start;
+                phaseA_start.phaseNumber = phaseCounterA;
+                phaseA_start.function = "LIN";
+                phaseA_start.rate = startRates[0];
+                phaseA_start.time = QString("%1:%2").arg(0, 2, 10, QLatin1Char('0')).arg(minutes, 2, 10, QLatin1Char('0'));
+                phaseA_start.direction = "INF";
+                phasesA.append(phaseA_start);
+
+                // Pump A - End
+                PumpPhase phaseA_end;
+                phaseA_end.phaseNumber = phaseCounterA + 1;
+                phaseA_end.function = "LIN";
+                phaseA_end.rate = endRates[0];
+                phaseA_end.time = QString("%1:%2").arg(seconds, 2, 10, QLatin1Char('0')).arg(tenths, 2, 10, QLatin1Char('0'));
+                phaseA_end.direction = "INF";
+                phasesA.append(phaseA_end);
+
+                phaseCounterA += 2;
+
+                // Pump B - Start
+                PumpPhase phaseB_start;
+                phaseB_start.phaseNumber = phaseCounterB;
+                phaseB_start.function = "LIN";
+                phaseB_start.rate = startRates[1];
+                phaseB_start.time = QString("%1:%2").arg(0, 2, 10, QLatin1Char('0')).arg(minutes, 2, 10, QLatin1Char('0'));
+                phaseB_start.direction = "INF";
+                phasesB.append(phaseB_start);
+
+                // Pump B - End
+                PumpPhase phaseB_end;
+                phaseB_end.phaseNumber = phaseCounterB + 1;
+                phaseB_end.function = "LIN";
+                phaseB_end.rate = endRates[1];
+                phaseB_end.time = QString("%1:%2").arg(seconds, 2, 10, QLatin1Char('0')).arg(tenths, 2, 10, QLatin1Char('0'));
+                phaseB_end.direction = "INF";
+                phasesB.append(phaseB_end);
+
+                phaseCounterB += 2;
             }
-            phaseCounterB++;
-        } else {
-            // Linear ramp segment — LIN (two parts)
-            int minutes = static_cast<int>(timeMin);
-            int seconds = static_cast<int>((timeMin - minutes) * 60);
-            int tenths = static_cast<int>(qRound(((timeMin - minutes) * 60 - seconds) * 10));
-
-            // Pump A - Start
-            PumpPhase phaseA_start;
-            phaseA_start.phaseNumber = phaseCounterA;
-            phaseA_start.function = "LIN";
-            phaseA_start.rate = startRates[0];
-            phaseA_start.time = QString("%1:%2").arg(0, 2, 10, QLatin1Char('0')).arg(minutes, 2, 10, QLatin1Char('0'));
-            phaseA_start.direction = "INF";
-            phasesA.append(phaseA_start);
-
-            // Pump A - End
-            PumpPhase phaseA_end;
-            phaseA_end.phaseNumber = phaseCounterA + 1;
-            phaseA_end.function = "LIN";
-            phaseA_end.rate = endRates[0];
-            phaseA_end.time = QString("%1:%2").arg(seconds, 2, 10, QLatin1Char('0')).arg(tenths, 2, 10, QLatin1Char('0'));
-            phaseA_end.direction = "INF";
-            phasesA.append(phaseA_end);
-
-            phaseCounterA += 2;
-
-            // Pump B - Start
-            PumpPhase phaseB_start;
-            phaseB_start.phaseNumber = phaseCounterB;
-            phaseB_start.function = "LIN";
-            phaseB_start.rate = startRates[1];
-            phaseB_start.time = QString("%1:%2").arg(0, 2, 10, QLatin1Char('0')).arg(minutes, 2, 10, QLatin1Char('0'));
-            phaseB_start.direction = "INF";
-            phasesB.append(phaseB_start);
-
-            // Pump B - End
-            PumpPhase phaseB_end;
-            phaseB_end.phaseNumber = phaseCounterB + 1;
-            phaseB_end.function = "LIN";
-            phaseB_end.rate = endRates[1];
-            phaseB_end.time = QString("%1:%2").arg(seconds, 2, 10, QLatin1Char('0')).arg(tenths, 2, 10, QLatin1Char('0'));
-            phaseB_end.direction = "INF";
-            phasesB.append(phaseB_end);
-
-            phaseCounterB += 2;
         }
+        break;
     }
+    if (std::max(phaseCounterA, phaseCounterB) >= 40)
+    {
+        writeToConsole("########################    WARNING!!!!   ########################", UiRed);
+        writeToConsole("There are too many phases, please reduce!", UiRed);
+        writeToConsole("Pump A: " + QString::number(phaseCounterA) +"; Pump B: "+ QString::number(phaseCounterB), UiRed);
+        writeToConsole("The pumps DO NOT match your expected settings!!!", UiRed);
+    }
+
+
+    // Pump A - End
+    PumpPhase phaseA_stop;
+    phaseA_stop.phaseNumber = phaseCounterA;
+    phaseA_stop.function = "STOP";
+    phasesA.append(phaseA_stop);
+
+    // Pump B - Start
+    PumpPhase phaseB_stop;
+    phaseB_stop.phaseNumber = phaseCounterB;
+    phaseB_stop.function = "STOP";
+    phasesB.append(phaseB_stop);
 
     return { phasesA, phasesB };
 }

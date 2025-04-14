@@ -96,7 +96,7 @@ private:
     bool protocolChanged;
     PumpInterface *pumpInterface;
 
-    QVector<QVector<PumpPhase>> generatePumpPhases(int startPhase, const QVector<QVector<double>>& segments) const;
+    QVector<QVector<PumpPhase>> generatePumpPhases(int startPhase, const QVector<QVector<double>>& segments) ;
     QVector<double> calculateFlowRates(double concentration) const;
 };
 #endif // PUMPCONTROLLER_H

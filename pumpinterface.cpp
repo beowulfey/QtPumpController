@@ -120,14 +120,20 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
     qDebug() << "PUMP A CMDS!!!!";
     foreach (PumpPhase phase, aPhases)
     {
+        qDebug() << "########################";
         qDebug() << "PHASE: " << phase.phaseNumber;
         qDebug() << "FUNCTION: " << phase.function;
-        if (phase.function == "RAT" || "PAS"){
+        if (phase.function == "RAT"){
             qDebug() << "RATE: " << phase.rate;
             qDebug() << "VOLUME: " << phase.volume;
             qDebug() << "DIR: " << phase.direction;
         }
         else if (phase.function == "LIN")
+        {
+            qDebug() << "RATE: " << phase.rate;
+            qDebug() << "TIME: " << phase.time;
+        }
+        else if (phase.function == "PAUSE")
         {
             qDebug() << "TIME: " << phase.time;
         }
@@ -138,14 +144,20 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
     qDebug() << "PUMP B CMDS!!!!";
     foreach (PumpPhase phase, bPhases)
     {
+        qDebug() << "########################";
         qDebug() << "PHASE: " << phase.phaseNumber;
         qDebug() << "FUNCTION: " << phase.function;
-        if (phase.function == "RAT" || "PAS"){
+        if (phase.function == "RAT"){
             qDebug() << "RATE: " << phase.rate;
             qDebug() << "VOLUME: " << phase.volume;
             qDebug() << "DIR: " << phase.direction;
         }
         else if (phase.function == "LIN")
+        {
+            qDebug() << "RATE: " << phase.rate;
+            qDebug() << "TIME: " << phase.time;
+        }
+        else if (phase.function == "PAUSE")
         {
             qDebug() << "TIME: " << phase.time;
         }
