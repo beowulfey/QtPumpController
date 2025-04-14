@@ -142,9 +142,14 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             phaseVol.cmd = PumpCommand::SetVolume;
             phaseVol.value = QString::number(phase.volume);
 
+            AddressedCommand phaseDir;
+            phaseDir.name = "PumpA";
+            phaseDir.cmd = PumpCommand::SetFlowDirection;
+
             commandWorker->enqueueCommand(phaseFunc);
             commandWorker->enqueueCommand(phaseRate);
             commandWorker->enqueueCommand(phaseVol);
+            commandWorker->enqueueCommand(phaseDir);
         }
         else if (phase.function == "LIN")
         {
@@ -153,10 +158,23 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
         }
         else if (phase.function == "PAUSE")
         {
-        //    qDebug() << "TIME: " << phase.time;
+            AddressedCommand phaseFunc;
+            phaseFunc.name = "PumpA";
+            phaseFunc.cmd = PumpCommand::PauseFunction;
+
+            AddressedCommand phaseTime;
+            phaseTime.name = "PumpA";
+            phaseTime.cmd = PumpCommand::SetPause;
+            phaseTime.value = phase.time;
+
+            commandWorker->enqueueCommand(phaseFunc);
+            commandWorker->enqueueCommand(phaseTime);
         }
-        else {
-        //    qDebug() <<"STOP?";
+        else if (phase.function == "STOP"){
+            AddressedCommand stopPhase;
+            stopPhase.name = "PumpA";
+            stopPhase.cmd = PumpCommand::StopFunction;
+            commandWorker->enqueueCommand(stopPhase);
         }
     }
     //qDebug() << "PUMP B CMDS!!!!";
@@ -184,9 +202,14 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             phaseVol.cmd = PumpCommand::SetVolume;
             phaseVol.value = QString::number(phase.volume);
 
+            AddressedCommand phaseDir;
+            phaseDir.name = "PumpB";
+            phaseDir.cmd = PumpCommand::SetFlowDirection;
+
             commandWorker->enqueueCommand(phaseFunc);
             commandWorker->enqueueCommand(phaseRate);
             commandWorker->enqueueCommand(phaseVol);
+            commandWorker->enqueueCommand(phaseDir);
         }
         else if (phase.function == "LIN")
         {
@@ -195,12 +218,48 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
         }
         else if (phase.function == "PAUSE")
         {
+            AddressedCommand phaseFunc;
+            phaseFunc.name = "PumpB";
+            phaseFunc.cmd = PumpCommand::PauseFunction;
+
+            AddressedCommand phaseTime;
+            phaseTime.name = "PumpB";
+            phaseTime.cmd = PumpCommand::SetPause;
+            phaseTime.value = phase.time;
+
+            commandWorker->enqueueCommand(phaseFunc);
+            commandWorker->enqueueCommand(phaseTime);
           //  qDebug() << "TIME: " << phase.time;
         }
-        else {
-         //   qDebug() <<"STOP?";
+        else if (phase.function == "STOP"){
+            AddressedCommand stopPhase;
+            stopPhase.name = "PumpB";
+            stopPhase.cmd = PumpCommand::StopFunction;
+            commandWorker->enqueueCommand(stopPhase);
         }
     }
+}
+
+bool PumpInterface::startPumps(int phase)
+{
+    if (!serial->isOpen()) {
+        emit errorOccurred("Serial port not open.");
+        return false;
+    }
+    QByteArray command = QString("RUN%1").arg(phase).toUtf8();
+    QByteArray packet;
+    packet.append(static_cast<char>('0')+0);
+    packet.append(command);
+    packet.append(static_cast<char>('*'));
+    packet.append(static_cast<char>('0')+1);
+    packet.append(command);
+    packet.append(static_cast<char>('*'));
+    packet.append('\r');
+
+
+    qint64 bytesWritten = serial->write(packet);
+    qDebug() << "Sending to pump: " << packet;
+    return bytesWritten == packet.size();
 }
 
 // Private functions
@@ -218,7 +277,7 @@ bool PumpInterface::sendCommand(int addr, PumpCommand cmd, QString value) {
     packet.append(command);
 
     qint64 bytesWritten = serial->write(packet);
-    qDebug() << "Sending to pump" << addr << ":" << packet;// << packet.toHex(' ');
+    qDebug() << "Sending to pump" << addr << ":" << packet;
     return bytesWritten == packet.size();
 }
 
@@ -239,7 +298,7 @@ QByteArray PumpInterface::buildCommand(PumpCommand cmd, QString value) {
         payload = QString("FUNRAT").toUtf8();
         break;
     case PumpCommand::SetFlowRate:
-        payload = QString("RAT%1UM").arg(value.toFloat(), 0, 'f', 0).toUtf8();
+        payload = QString("RAT%1UM").arg(value.toFloat(), 0, 'f', 1).toUtf8();
         break;
     case PumpCommand::SetVolume:
         payload = QString("VOL%1").arg(value.toFloat(),0,'f',0).toUtf8();
@@ -257,6 +316,15 @@ QByteArray PumpInterface::buildCommand(PumpCommand cmd, QString value) {
     case PumpCommand::RampFunction:
         payload = "FUNLIN";
         break;
+    case PumpCommand::StopFunction:
+        payload = "FUNSTP";
+        break;
+    case PumpCommand::PauseFunction:
+        payload = "FUNPAS";
+        break;
+    case PumpCommand::SetPause:
+        payload = QString("PAS%1)").arg(value.toInt()).toUtf8();
+        break;
     case PumpCommand::SetRampTime:
         // will be in format (00:00), for HH:MM or SS:Tenths depending on phase
         payload = QString("TIM%1").arg(value).toUtf8();
@@ -267,7 +335,7 @@ QByteArray PumpInterface::buildCommand(PumpCommand cmd, QString value) {
     }
 
     payload.append('\r'); // Required carriage return
-    qDebug() << "buildCommand built as: " << payload;
+    //qDebug() << "buildCommand built as: " << payload;
     return payload;
 }
 

@@ -1,4 +1,3 @@
-// pumpcommandworker.cpp
 #include "pumpcommandworker.h"
 #include "pumpinterface.h"
 #include <QDebug>
@@ -18,13 +17,12 @@ void PumpCommandWorker::enqueueCommand(const AddressedCommand& command) {
 
 void PumpCommandWorker::processNext() {
     if (commandQueue.isEmpty()) {
+        // emit message that queue is complete?
         processing = false;
         return;
     }
 
     AddressedCommand cmd = commandQueue.dequeue();
-    qDebug() << "Worker sending command to " << cmd.name;      // << cmd.cmd <<cmd.value;
-    //pumpInterface->sendToPump(cmd.name, cmd.cmd, cmd.value);
     emit pumpCommandReady(cmd.name, cmd.cmd, cmd.value);
     processing = true;
 }

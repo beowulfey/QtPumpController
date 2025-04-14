@@ -468,6 +468,10 @@ void PumpController::startProtocol()
 
         ui->butSendProtocol->setDisabled(1);
 
+        if (pumpInterface) {
+            pumpInterface->startPumps(2);
+        }
+
     } else {
         writeToConsole("Your protocol is empty! What are you running?", UiYellow);
     }
@@ -704,6 +708,7 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
 
             phaseCounterB += 2;
         }
+        qDebug() << "Phases: " << phaseCounterA << phaseCounterB;
     }
 
     // Pump A - End
@@ -711,6 +716,7 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
     phaseA_stop.phaseNumber = phaseCounterA;
     phaseA_stop.function = "STOP";
     phasesA.append(phaseA_stop);
+    qDebug() << "Stops: " << phaseCounterA << phaseCounterB;
 
     // Pump B - Start
     PumpPhase phaseB_stop;

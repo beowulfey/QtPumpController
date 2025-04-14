@@ -28,6 +28,8 @@ public:
     void shutdown();
     void setPhases(const QVector<QVector<PumpPhase>> &phases);
 
+    bool startPumps(int phase);
+
 public slots:
     void handlePumpCommand(const QString& name, PumpCommand cmd, QString value);
 
