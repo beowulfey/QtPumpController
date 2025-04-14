@@ -23,8 +23,8 @@ public:
     ~PumpInterface();
 
     bool connectToPumps(const QString &portName, qint32 baudRate = QSerialPort::Baud19200);           // initiates connections
-    void broadcastCommand(PumpCommand cmd, double value = 0.0);                                      // for basic stuff, like versions
-    void sendToPump(const QString &name, PumpCommand cmd, double value = 0.0);
+    void broadcastCommand(PumpCommand cmd, QString value = 0);                                      // for basic stuff, like versions
+    void sendToPump(const QString &name, PumpCommand cmd, QString value = 0);
     void shutdown();
 
 public slots:

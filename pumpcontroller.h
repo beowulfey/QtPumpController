@@ -5,7 +5,7 @@
 #include <QList>
 #include "tablemodel.h"
 #include "protocol.h"
-//#include "pumpcommandworker.h"
+#include "pumpcommands.h"
 #include "pumpinterface.h"
 
 QT_BEGIN_NAMESPACE
@@ -14,14 +14,7 @@ class PumpController;
 }
 QT_END_NAMESPACE
 
-struct PumpPhase {
-    int phaseNumber = 0;      // The phase number sent via PHN command
-    QString function;         // "RAT", "LIN", "STP"
-    double rate = 0.0;        // Flow rate in µL/min
-    double volume;           // Optional — only used for "RAT"
-    QString time;             // Optional — only used for "LIN"
-    QString direction = "INF"; // "INF" or "WDR", default is "INF"
-};
+
 
 class PumpController : public QMainWindow
 {
@@ -59,7 +52,7 @@ public slots:
 
     void timerTick();
 
-    QVector<QVector<PumpPhase>> generatePumpPhases(const QVector<QVector<double>>& segments) const;
+
 
 
     //void timerTick();
@@ -103,7 +96,7 @@ private:
     bool protocolChanged;
     PumpInterface *pumpInterface;
 
-
+    QVector<QVector<PumpPhase>> generatePumpPhases(const QVector<QVector<double>>& segments) const;
     QVector<double> calculateFlowRates(double concentration) const;
 };
 #endif // PUMPCONTROLLER_H
