@@ -23,6 +23,7 @@ enum class PumpCommand {
     SetFlowDirection,
     RampFunction,
     SetRampTime,
+    SetVolUnits
 
 };
 

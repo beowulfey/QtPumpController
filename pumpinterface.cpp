@@ -78,11 +78,12 @@ bool PumpInterface::connectToPumps(const QString &portName, qint32 baudRate) {
     serial->setDataTerminalReady(true);
     serial->setRequestToSend(true);
 
-    qDebug() << "Port opened successfully:" << serial->portName();
+    //qDebug() << "Port opened successfully:" << serial->portName();
 
     // Send initial commands (like GetVersion)
     //emit dataReceived("Connecting to pumps! ");
     broadcastCommand(PumpCommand::GetVersion);
+    broadcastCommand(PumpCommand::SetVolUnits); // hardcoded to uL
     return true;
 }
 
@@ -103,7 +104,7 @@ void PumpInterface::sendToPump(const QString &name, PumpCommand cmd, QString val
 
     for (const Pump &pump : pumps) {
         if (pump.name == name) {
-            qDebug() << "sendToPump: #"<<pump.address;
+            //qDebug() << "sendToPump: #"<<pump.address;
             sendCommand(pump.address, cmd, value);
             return;
         }
@@ -117,31 +118,24 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
     QVector<PumpPhase> bPhases = phases.at(1);
 
     QVector<AddressedCommand> cmdList;
-    // Queue Pump A commands
-    //qDebug() << "PUMP A CMDS!!!!";
     foreach (PumpPhase phase, aPhases)
     {
-    //    qDebug() << "########################";
-    //    qDebug() << "PHASE: " << phase.phaseNumber;
-    //    qDebug() << "FUNCTION: " << phase.function;
-
         AddressedCommand phaseNumber;
         phaseNumber.name = "PumpA";
         phaseNumber.cmd = PumpCommand::SetPhase;
         phaseNumber.value = QString::number(phase.phaseNumber);
-
         commandWorker->enqueueCommand(phaseNumber);
 
         if (phase.function == "RAT")
         {
-            qDebug() << "RATE: " << phase.rate;
-            qDebug() << "VOLUME: " << phase.volume;
-            //qDebug() << "DIR: " << phase.direction;
-
             AddressedCommand phaseFunc;
             phaseFunc.name = "PumpA";
-            phaseFunc.cmd = PumpCommand::SetFlowRate;
-            phaseFunc.value = QString::number(phase.rate);
+            phaseFunc.cmd = PumpCommand::RateFunction;
+
+            AddressedCommand phaseRate;
+            phaseRate.name = "PumpA";
+            phaseRate.cmd = PumpCommand::SetFlowRate;
+            phaseRate.value = QString::number(phase.rate);
 
             AddressedCommand phaseVol;
             phaseVol.name = "PumpA";
@@ -149,6 +143,7 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             phaseVol.value = QString::number(phase.volume);
 
             commandWorker->enqueueCommand(phaseFunc);
+            commandWorker->enqueueCommand(phaseRate);
             commandWorker->enqueueCommand(phaseVol);
         }
         else if (phase.function == "LIN")
@@ -167,24 +162,22 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
     //qDebug() << "PUMP B CMDS!!!!";
     foreach (PumpPhase phase, bPhases)
     {
-        //qDebug() << "########################";
-        //qDebug() << "PHASE: " << phase.phaseNumber;
         AddressedCommand phaseNumber;
         phaseNumber.name = "PumpB";
         phaseNumber.cmd = PumpCommand::SetPhase;
         phaseNumber.value = QString::number(phase.phaseNumber);
-
         commandWorker->enqueueCommand(phaseNumber);
 
-       // qDebug() << "FUNCTION: " << phase.function;
-        if (phase.function == "RAT"){
-        //    qDebug() << "RATE: " << phase.rate;
-         //   qDebug() << "VOLUME: " << phase.volume;
-         //   qDebug() << "DIR: " << phase.direction;
+        if (phase.function == "RAT")
+        {
             AddressedCommand phaseFunc;
             phaseFunc.name = "PumpB";
-            phaseFunc.cmd = PumpCommand::SetFlowRate;
-            phaseFunc.value = QString::number(phase.rate);
+            phaseFunc.cmd = PumpCommand::RateFunction;
+
+            AddressedCommand phaseRate;
+            phaseRate.name = "PumpB";
+            phaseRate.cmd = PumpCommand::SetFlowRate;
+            phaseRate.value = QString::number(phase.rate);
 
             AddressedCommand phaseVol;
             phaseVol.name = "PumpB";
@@ -192,8 +185,8 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             phaseVol.value = QString::number(phase.volume);
 
             commandWorker->enqueueCommand(phaseFunc);
+            commandWorker->enqueueCommand(phaseRate);
             commandWorker->enqueueCommand(phaseVol);
-
         }
         else if (phase.function == "LIN")
         {
@@ -225,7 +218,7 @@ bool PumpInterface::sendCommand(int addr, PumpCommand cmd, QString value) {
     packet.append(command);
 
     qint64 bytesWritten = serial->write(packet);
-    qDebug() << "Sending to pump" << addr << ":" << packet << packet.toHex(' ');
+    qDebug() << "Sending to pump" << addr << ":" << packet;// << packet.toHex(' ');
     return bytesWritten == packet.size();
 }
 
@@ -236,23 +229,23 @@ QByteArray PumpInterface::buildCommand(PumpCommand cmd, QString value) {
 
     switch (cmd) {
     case PumpCommand::Start:
-        qDebug() << "Start selected";
         // RUN [phase] will start either the current phase or this number
         payload = QString("RUN%1").arg(value.toFloat(),0,'f', 0).toUtf8();
         break;
     case PumpCommand::Stop:
-        qDebug() << "Stop selected";
         payload = "STP";
         break;
     case PumpCommand::RateFunction:
         payload = QString("FUNRAT").toUtf8();
         break;
     case PumpCommand::SetFlowRate:
-        qDebug() << "Set Flow Rate selected";
-        payload = QString("RAT%1UM").arg(value.toFloat(), 0, 'f', 2).toUtf8();
+        payload = QString("RAT%1UM").arg(value.toFloat(), 0, 'f', 0).toUtf8();
         break;
     case PumpCommand::SetVolume:
-        payload = QString("VOL%1UL").arg(value.toFloat(),0,'f',2).toUtf8();
+        payload = QString("VOL%1").arg(value.toFloat(),0,'f',0).toUtf8();
+        break;
+    case PumpCommand::SetVolUnits:
+        payload = "VOLUL";
         break;
     case PumpCommand::SetFlowDirection:
         // Any value given will set to withdraw
