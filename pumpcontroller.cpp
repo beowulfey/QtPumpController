@@ -9,8 +9,8 @@
 PumpController::PumpController(QWidget *parent)
     : QMainWindow(parent),
     ui(new Ui::PumpController),
-    pumpComPort("None"),
-    condComPort("None"),
+    pumpComPort(""),
+    condComPort(""),
     //offset(0.00),       //
     xPos(-1),            // hides the vLine off the protocol chart
     protocolChanged(1)
@@ -469,7 +469,7 @@ void PumpController::startProtocol()
 
         ui->butSendProtocol->setDisabled(1);
 
-        if (pumpInterface) {
+        if (!pumpComPort.isEmpty()) {
             pumpInterface->startPumps(2);
         }
 

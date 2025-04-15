@@ -7,6 +7,7 @@ PlotWidget::PlotWidget(QWidget *parent)
     // Initialize the plot
     plot = new QCustomPlot(this);
     graph = plot->addGraph();
+    graph->setLineStyle(QCPGraph::lsStepCenter);
 
     QPen pen;
     pen.setWidth(2);
