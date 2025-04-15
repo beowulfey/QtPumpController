@@ -628,7 +628,7 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
                     PumpPhase pause;
                     pause.phaseNumber = phaseCounterA;
                     pause.function = "PAUSE";
-                    pause.time = QString("00:%1").arg(chunk, 2, 10, QLatin1Char('0'));
+                    pause.time = QString::number(chunk);//QString("00:%1").arg(chunk, 2, 10, QLatin1Char('0'));
                     phasesA.append(pause);
                     remaining -= chunk;
                     phaseCounterA++;
@@ -654,7 +654,7 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
                     PumpPhase pause;
                     pause.phaseNumber = phaseCounterB;
                     pause.function = "PAUSE";
-                    pause.time = QString("00:%1").arg(chunk, 2, 10, QLatin1Char('0'));
+                    pause.time = QString::number(chunk);//QString("00:%1").arg(chunk, 2, 10, QLatin1Char('0'));
                     phasesB.append(pause);
                     remaining -= chunk;
                     phaseCounterB++;
