@@ -84,6 +84,7 @@ void PlotWidget::onChange() {
     plot->clearItems();
     graph->setData(xData, yData);
 
+
     // Dynamic x/y range setup
     double xMin = 0.0, xMax = 10.0;
     //double yMin = 0.0, yMax = 1.0;
@@ -93,12 +94,6 @@ void PlotWidget::onChange() {
         xMin = *xMinMax.first;
         xMax = *xMinMax.second;
     }
-
-    //if (!yData.isEmpty()) {
-    //    auto yMinMax = std::minmax_element(yData.constBegin(), yData.constEnd());
-    //    yMin = *yMinMax.first;
-    //    yMax = *yMinMax.second;
-    //}
 
     // Add padding
     double xPadding = (xMax - xMin) * 0.05;

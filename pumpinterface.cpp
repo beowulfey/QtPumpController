@@ -181,14 +181,15 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             AddressedCommand phaseFunc;
             phaseFunc.name = "PumpA";
             phaseFunc.cmd = PumpCommand::PauseFunction;
+            phaseFunc.value = phase.time;
 
-            AddressedCommand phaseTime;
-            phaseTime.name = "PumpA";
-            phaseTime.cmd = PumpCommand::SetPause;
-            phaseTime.value = phase.time;
+            //AddressedCommand phaseTime;
+            //phaseTime.name = "PumpA";
+            //phaseTime.cmd = PumpCommand::SetPause;
+            //phaseTime.value = phase.time;
 
             commandWorker->enqueueCommand(phaseFunc);
-            commandWorker->enqueueCommand(phaseTime);
+            //commandWorker->enqueueCommand(phaseTime);
         }
         else if (phase.function == "STOP"){
             AddressedCommand stopPhase;
@@ -261,14 +262,15 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             AddressedCommand phaseFunc;
             phaseFunc.name = "PumpB";
             phaseFunc.cmd = PumpCommand::PauseFunction;
+            phaseFunc.value = phase.time;
 
-            AddressedCommand phaseTime;
-            phaseTime.name = "PumpB";
-            phaseTime.cmd = PumpCommand::SetPause;
-            phaseTime.value = phase.time;
+            //AddressedCommand phaseTime;
+            //phaseTime.name = "PumpB";
+            //phaseTime.cmd = PumpCommand::SetPause;
+            //phaseTime.value = phase.time;
 
             commandWorker->enqueueCommand(phaseFunc);
-            commandWorker->enqueueCommand(phaseTime);
+            //commandWorker->enqueueCommand(phaseTime);
           //  qDebug() << "TIME: " << phase.time;
         }
         else if (phase.function == "STOP"){
@@ -360,7 +362,7 @@ QByteArray PumpInterface::buildCommand(PumpCommand cmd, QString value) {
         payload = "FUNSTP";
         break;
     case PumpCommand::PauseFunction:
-        payload = "FUNPAS";
+        payload = QString("FUNPAS%1").arg(value.toInt()).toUtf8();
         break;
     case PumpCommand::SetPause:
         payload = QString("PAS%1").arg(value.toInt()).toUtf8();

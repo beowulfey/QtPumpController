@@ -402,14 +402,16 @@ void PumpController::clearSegments()
 void PumpController::updateProtocol()
 // Not a button, but called automatically whenever the protocol changes.
 {
-    if (tableModel->rowCount(QModelIndex())>0)
-    {
-        currProtocol->generate(tableModel->getSegments());
-        ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
+    //if (tableModel->rowCount(QModelIndex())>0)
+    //{
+    currProtocol->generate(tableModel->getSegments());
+    qDebug()<<currProtocol->xvals();
+    qDebug()<<currProtocol->yvals();
+    ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
 
-    } else {
+    //} else {
         //writeToConsole("I'm afraid you can't update with an empty protocol.", UiYellow);
-    }
+    //}
 
 }
 
