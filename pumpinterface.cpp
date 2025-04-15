@@ -153,8 +153,28 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
         }
         else if (phase.function == "LIN")
         {
-       //     qDebug() << "RATE: " << phase.rate;
-       //     qDebug() << "TIME: " << phase.time;
+            AddressedCommand phaseFunc;
+            phaseFunc.name = "PumpA";
+            phaseFunc.cmd = PumpCommand::RateFunction;
+
+            AddressedCommand phaseRate;
+            phaseRate.name = "PumpA";
+            phaseRate.cmd = PumpCommand::SetFlowRate;
+            phaseRate.value = QString::number(phase.rate);
+
+            AddressedCommand phaseTime;
+            phaseTime.name = "PumpA";
+            phaseTime.cmd = PumpCommand::SetRampTime;
+            phaseTime.value = phase.time;
+
+            AddressedCommand phaseDir;
+            phaseDir.name = "PumpA";
+            phaseDir.cmd = PumpCommand::SetFlowDirection;
+
+            commandWorker->enqueueCommand(phaseFunc);
+            commandWorker->enqueueCommand(phaseRate);
+            commandWorker->enqueueCommand(phaseTime);
+            commandWorker->enqueueCommand(phaseDir);
         }
         else if (phase.function == "PAUSE")
         {
@@ -213,8 +233,28 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
         }
         else if (phase.function == "LIN")
         {
-          //  qDebug() << "RATE: " << phase.rate;
-          //  qDebug() << "TIME: " << phase.time;
+            AddressedCommand phaseFunc;
+            phaseFunc.name = "PumpB";
+            phaseFunc.cmd = PumpCommand::RateFunction;
+
+            AddressedCommand phaseRate;
+            phaseRate.name = "PumpB";
+            phaseRate.cmd = PumpCommand::SetFlowRate;
+            phaseRate.value = QString::number(phase.rate);
+
+            AddressedCommand phaseTime;
+            phaseTime.name = "PumpB";
+            phaseTime.cmd = PumpCommand::SetRampTime;
+            phaseTime.value = phase.time;
+
+            AddressedCommand phaseDir;
+            phaseDir.name = "PumpB";
+            phaseDir.cmd = PumpCommand::SetFlowDirection;
+
+            commandWorker->enqueueCommand(phaseFunc);
+            commandWorker->enqueueCommand(phaseRate);
+            commandWorker->enqueueCommand(phaseTime);
+            commandWorker->enqueueCommand(phaseDir);
         }
         else if (phase.function == "PAUSE")
         {
@@ -323,7 +363,7 @@ QByteArray PumpInterface::buildCommand(PumpCommand cmd, QString value) {
         payload = "FUNPAS";
         break;
     case PumpCommand::SetPause:
-        payload = QString("PAS%1)").arg(value.toInt()).toUtf8();
+        payload = QString("PAS%1").arg(value.toInt()).toUtf8();
         break;
     case PumpCommand::SetRampTime:
         // will be in format (00:00), for HH:MM or SS:Tenths depending on phase

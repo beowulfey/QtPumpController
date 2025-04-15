@@ -314,8 +314,7 @@ void PumpController::confirmSettings()
     ui->spinStartConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
     ui->spinEndConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
     tableModel->updateSegments();
-
-    if (pumpComPort != "None" ) {
+    if (!pumpComPort.isEmpty()) {
         ui->spinStraightConc->setEnabled(1);
         ui->butStartPump->setEnabled(1);
         ui->butUpdatePump->setEnabled(1);

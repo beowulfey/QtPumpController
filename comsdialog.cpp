@@ -8,8 +8,8 @@ COMsDialog::COMsDialog(QWidget *parent)
 
     combo_com_pump->addItem("None");
     combo_com_cond->addItem("None");
-    combo_com_pump->addItem("TEST");
-    combo_com_cond->addItem("TEST");
+    //combo_com_pump->addItem("TEST");
+    //combo_com_cond->addItem("TEST");
 
     for (const QSerialPortInfo &info : QSerialPortInfo::availablePorts()) {
         QString port = info.portName();
