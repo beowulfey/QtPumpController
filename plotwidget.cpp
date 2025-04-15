@@ -70,6 +70,8 @@ void PlotWidget::setStop() {
 }
 
 void PlotWidget::setData(QVector<double> xVals, QVector<double> yVals) {
+    // I was getting weird jagged lines when two consecutive X vals were the same
+    // This inserts some fuzzy values into X so they aren't the same
     QVector<double> adjustedX;
     adjustedX.reserve(xVals.size());
 

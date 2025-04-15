@@ -420,6 +420,7 @@ void PumpController::updateProtocol()
 
 void PumpController::startProtocol()
 {
+    startTime=QTime::currentTime();
     if (tableModel->rowCount(QModelIndex())>0)
     {
         writeToConsole("Current segments: ", UiBlue);
@@ -450,7 +451,7 @@ void PumpController::startProtocol()
 
             // Only the first interval might be shorter, the rest will be syncd with intTimer
             runTimer->start(totalTime);
-            qDebug() << "Synchronized protocol start! runTimer remaining time now: " << runTimer->remainingTime();
+            //qDebug() << "Synchronized protocol start! runTimer remaining time now: " << runTimer->remainingTime();
             xPos = 0;
             ui->protocolPlot->setX(currProtocol->xvals().at(xPos));
             writeToConsole("Protocol started.", UiGreen);
@@ -510,11 +511,12 @@ void PumpController::stopProtocol()
     ui->spinPac->setEnabled(1);
     ui->spinPbc->setEnabled(1);
 
-    if (pumpComPort != "None" ) {
+    if (!pumpComPort.isEmpty() ) {
         ui->butStartPump->setEnabled(1);
         ui->butUpdatePump->setEnabled(1);
         ui->butStopPump->setEnabled(1);
         ui->butSendProtocol->setEnabled(1);
+        pumpInterface->stopPumps();
     }
 
 
@@ -523,22 +525,14 @@ void PumpController::stopProtocol()
 void PumpController::timerTick()
 // At each time point, record a conductivity meter reading and update plot X position
 {
-    // Example for 15 seconds. xvals() is 31 points. First timerTick is xvals[0], second is xvals[1]
-    // This would equate to 14500 ms left.
+
     if (runTimer->isActive())
     {
+        int secsDiff = startTime.secsTo(QTime::currentTime());
+        double elapsedMinutes = secsDiff / 60.0;
+        qDebug() << "Elapsed:" << elapsedMinutes << "minutes";
 
-        if (xPos <= currProtocol->xvals().length()){
-            xPos += 1;
-            ui->protocolPlot->setX(currProtocol->xvals().at(xPos));
-            //writeToConsole("Test "+QString::number(xPos));
-        }
-
-        //double totalTime = ((currProtocol->xvals().count() - 1)*currProtocol->dt())*1000; //
-        //double timeLeft = runTimer->remainingTime();
-        //int currPos = std::round(totalTime - timeLeft);
-        //qDebug() << totalTime << timeLeft << currPos <<xPos << currProtocol->xvals().length(); //<< currProtocol->xvals().length() - currPos;
-
+        ui->protocolPlot->setX(elapsedMinutes);  // move marker to correct X pos based on time
     }
 }
 

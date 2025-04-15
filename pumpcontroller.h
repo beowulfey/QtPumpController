@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QList>
+#include <QTime>
 #include "tablemodel.h"
 #include "protocol.h"
 #include "pumpcommands.h"
@@ -82,6 +83,7 @@ public slots:
 
 
 private:
+    QTime startTime;
     Ui::PumpController *ui;
     //PumpCommandWorker *commandWorker;
     QString pumpComPort;

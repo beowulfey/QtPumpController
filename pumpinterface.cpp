@@ -155,7 +155,7 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
         {
             AddressedCommand phaseFunc;
             phaseFunc.name = "PumpA";
-            phaseFunc.cmd = PumpCommand::RateFunction;
+            phaseFunc.cmd = PumpCommand::RampFunction;
 
             AddressedCommand phaseRate;
             phaseRate.name = "PumpA";
@@ -236,7 +236,7 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
         {
             AddressedCommand phaseFunc;
             phaseFunc.name = "PumpB";
-            phaseFunc.cmd = PumpCommand::RateFunction;
+            phaseFunc.cmd = PumpCommand::RampFunction;
 
             AddressedCommand phaseRate;
             phaseRate.name = "PumpB";
@@ -302,6 +302,30 @@ bool PumpInterface::startPumps(int phase)
     qint64 bytesWritten = serial->write(packet);
     qDebug() << "Sending to pump: " << packet;
     return bytesWritten == packet.size();
+}
+
+bool PumpInterface::stopPumps()
+{
+    if (!serial->isOpen()) {
+        emit errorOccurred("Serial port not open.");
+        return false;
+    }
+    QByteArray command = "STP";
+    QByteArray packet;
+    packet.append(static_cast<char>('0')+0);
+    packet.append(command);
+    packet.append(static_cast<char>('*'));
+    packet.append(static_cast<char>('0')+1);
+    packet.append(command);
+    packet.append(static_cast<char>('*'));
+    packet.append('\r');
+
+
+    qint64 bytesWritten = serial->write(packet);
+    qDebug() << "Sending to pump: " << packet;
+    QThread::msleep(30);
+    qint64 bytesWritten2 = serial->write(packet);
+    return bytesWritten+bytesWritten2 == 2*packet.size();
 }
 
 // Private functions

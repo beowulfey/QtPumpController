@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     comsdialog.cpp \
+    condinterface.cpp \
     condmeter.cpp \
     main.cpp \
     plotwidget.cpp \
@@ -22,6 +23,7 @@ SOURCES += \
 
 HEADERS += \
     comsdialog.h \
+    condinterface.h \
     condmeter.h \
     plotwidget.h \
     protocol.h \
