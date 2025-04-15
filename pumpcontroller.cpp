@@ -388,6 +388,7 @@ void PumpController::clearSegments()
     if (tableModel->rowCount(QModelIndex())>0)
     {
         tableModel->clearSegments();
+
     } else {
         writeToConsole("Maybe add some segments first -- nothing to clear.", UiYellow);
     }
@@ -405,8 +406,8 @@ void PumpController::updateProtocol()
     //if (tableModel->rowCount(QModelIndex())>0)
     //{
     currProtocol->generate(tableModel->getSegments());
-    qDebug()<<currProtocol->xvals();
-    qDebug()<<currProtocol->yvals();
+    //qDebug()<<currProtocol->xvals();
+    //qDebug()<<currProtocol->yvals();
     ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
 
     //} else {

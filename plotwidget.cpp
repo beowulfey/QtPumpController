@@ -70,7 +70,22 @@ void PlotWidget::setStop() {
 }
 
 void PlotWidget::setData(QVector<double> xVals, QVector<double> yVals) {
-    xData = xVals;
+    QVector<double> adjustedX;
+    adjustedX.reserve(xVals.size());
+
+    double lastX = -std::numeric_limits<double>::infinity();
+
+    for (double x : xVals) {
+        if (x <= lastX) {
+            // Add a small random epsilon between 0 and 0.001
+            double epsilon = QRandomGenerator::global()->bounded(0.001);
+            x = lastX + epsilon;
+        }
+        adjustedX.append(x);
+        lastX = x;
+    }
+
+    xData = adjustedX;
     yData = yVals;
     onChange();
 }
