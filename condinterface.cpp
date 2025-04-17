@@ -60,7 +60,7 @@ bool CondInterface::connectToMeter(const QString &portName, qint32 baudRate) {
     serial->setDataTerminalReady(true);
     serial->setRequestToSend(true);
 
-    qDebug() << "Meter port opened successfully:" << serial->portName();
+    //qDebug() << "Meter port opened successfully:" << serial->portName();
 
     // Every time we connect, just confirm the datetime is set.
     //QDateTime now = QDateTime::currentDateTime();
@@ -108,7 +108,7 @@ void CondInterface::handleReadyRead() {
             emit messageReceived(response);
         }
         else if (response.contains("Conductivity")) {
-            qDebug()<<"Measurement detected";
+            //qDebug()<<"Measurement detected";
             QStringList fields = response.split(',');
 
             if (fields.size() >= 12) {
@@ -116,7 +116,7 @@ void CondInterface::handleReadyRead() {
                 reading.value = fields[9].toDouble();         // e.g., "0.00"
                 reading.units = fields[10].trimmed();          // e.g., "uS/cm"
 
-                qDebug() << "Conductivity reading:" << reading.value << reading.units;
+                //qDebug() << "Conductivity reading:" << reading.value << reading.units;
                 emit measurementReceived(reading);
             } else {
                 emit errorOccurred("Malformed GETMEAS response");

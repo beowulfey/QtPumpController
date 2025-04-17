@@ -270,7 +270,7 @@ void PumpController::initiateCond()
 
 void PumpController::receiveCondMeasurement(CondReading reading)
 {
-    qDebug() << "Conductivity:" << reading.value << reading.units;
+    //qDebug() << "Conductivity:" << reading.value << reading.units;
     double mSReading = reading.value;
     if (reading.units == "mS/cm")
     {
@@ -512,7 +512,7 @@ void PumpController::startProtocol()
         // I subtract a second time point too because I skip the first point to sync
         // with the interval timer.
         double totalTime = (currProtocol->xvals().count() - 1)*currProtocol->dt()*1000; //
-        qDebug() << "Total Time: " << totalTime;
+        //qDebug() << "Total Time: " << totalTime;
 
         // Use a lambda that captures `this`
         auto starter = new QObject(this); // use a temporary object for connection context
@@ -614,7 +614,7 @@ void PumpController::timerTick()
     {
         int secsDiff = startTime.secsTo(QTime::currentTime());
         double elapsedMinutes = secsDiff / 60.0;
-        qDebug() << "Elapsed:" << elapsedMinutes << "minutes";
+        //qDebug() << "Elapsed:" << elapsedMinutes << "minutes";
 
         ui->protocolPlot->setX(elapsedMinutes);  // move marker to correct X pos based on time
     }
@@ -843,7 +843,7 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
 
                 phaseCounterB += 2;
             }
-            qDebug() << "Phases: " << phaseCounterA << phaseCounterB;
+            //qDebug() << "Phases: " << phaseCounterA << phaseCounterB;
         }
 
         // Pump A - End
@@ -851,7 +851,7 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
         phaseA_stop.phaseNumber = phaseCounterA;
         phaseA_stop.function = "STOP";
         phasesA.append(phaseA_stop);
-        qDebug() << "Stops: " << phaseCounterA << phaseCounterB;
+       // qDebug() << "Stops: " << phaseCounterA << phaseCounterB;
 
         // Pump B - Start
         PumpPhase phaseB_stop;
