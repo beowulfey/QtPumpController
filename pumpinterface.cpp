@@ -28,9 +28,9 @@ PumpInterface::PumpInterface(QObject *parent)
     commandWorker = new PumpCommandWorker(this, nullptr);
     commandWorker->moveToThread(workerThread);
     workerThread->start();
-    connect(commandWorker, &PumpCommandWorker::pumpCommandReady,
-            this, &PumpInterface::handlePumpCommand,
-            Qt::QueuedConnection);  // <- critical!
+
+    connect(this, &PumpInterface::sendCommandToQueue, commandWorker, &PumpCommandWorker::enqueueCommand, Qt::QueuedConnection);
+    connect(commandWorker, &PumpCommandWorker::pumpCommandReady, this, &PumpInterface::handlePumpCommand, Qt::QueuedConnection);  // <- critical!
 
 
 
@@ -94,7 +94,7 @@ void PumpInterface::broadcastCommand(PumpCommand cmd, QString value) {
         command.name = pump.name;
         command.cmd = cmd;
         command.value = value;
-        commandWorker->enqueueCommand(command);
+        emit sendCommandToQueue(command);
     }
 }
 
@@ -124,20 +124,20 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
         phaseNumber.name = "PumpA";
         phaseNumber.cmd = PumpCommand::SetPhase;
         phaseNumber.value = QString::number(phase.phaseNumber);
-        commandWorker->enqueueCommand(phaseNumber);
+        emit sendCommandToQueue(phaseNumber);
 
         if (phase.function == "RAT")
         {
             AddressedCommand phaseFunc;
             phaseFunc.name = "PumpA";
             phaseFunc.cmd = PumpCommand::RateFunction;
-            commandWorker->enqueueCommand(phaseFunc);
+            emit sendCommandToQueue(phaseFunc);
 
             AddressedCommand phaseRate;
             phaseRate.name = "PumpA";
             phaseRate.cmd = PumpCommand::SetFlowRate;
             phaseRate.value = QString::number(phase.rate);
-            commandWorker->enqueueCommand(phaseRate);
+            emit sendCommandToQueue(phaseRate);
 
             if (phase.volume > 0){
                 // if volume is zero, lets it run forever
@@ -145,13 +145,13 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
                 phaseVol.name = "PumpA";
                 phaseVol.cmd = PumpCommand::SetVolume;
                 phaseVol.value = QString::number(phase.volume);
-                commandWorker->enqueueCommand(phaseVol);
+                emit sendCommandToQueue(phaseVol);
             }
 
             AddressedCommand phaseDir;
             phaseDir.name = "PumpA";
             phaseDir.cmd = PumpCommand::SetFlowDirection;
-            commandWorker->enqueueCommand(phaseDir);
+            emit sendCommandToQueue(phaseDir);
         }
         else if (phase.function == "LIN")
         {
@@ -173,10 +173,10 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             phaseDir.name = "PumpA";
             phaseDir.cmd = PumpCommand::SetFlowDirection;
 
-            commandWorker->enqueueCommand(phaseFunc);
-            commandWorker->enqueueCommand(phaseRate);
-            commandWorker->enqueueCommand(phaseTime);
-            commandWorker->enqueueCommand(phaseDir);
+            emit sendCommandToQueue(phaseFunc);
+            emit sendCommandToQueue(phaseRate);
+            emit sendCommandToQueue(phaseTime);
+            emit sendCommandToQueue(phaseDir);
         }
         else if (phase.function == "PAUSE")
         {
@@ -190,14 +190,14 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             //phaseTime.cmd = PumpCommand::SetPause;
             //phaseTime.value = phase.time;
 
-            commandWorker->enqueueCommand(phaseFunc);
-            //commandWorker->enqueueCommand(phaseTime);
+            emit sendCommandToQueue(phaseFunc);
+            //emit sendCommandToQueue(phaseTime);
         }
         else if (phase.function == "STOP"){
             AddressedCommand stopPhase;
             stopPhase.name = "PumpA";
             stopPhase.cmd = PumpCommand::StopFunction;
-            commandWorker->enqueueCommand(stopPhase);
+            emit sendCommandToQueue(stopPhase);
         }
     }
     //qDebug() << "PUMP B CMDS!!!!";
@@ -207,20 +207,20 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
         phaseNumber.name = "PumpB";
         phaseNumber.cmd = PumpCommand::SetPhase;
         phaseNumber.value = QString::number(phase.phaseNumber);
-        commandWorker->enqueueCommand(phaseNumber);
+        emit sendCommandToQueue(phaseNumber);
 
         if (phase.function == "RAT")
         {
             AddressedCommand phaseFunc;
             phaseFunc.name = "PumpB";
             phaseFunc.cmd = PumpCommand::RateFunction;
-            commandWorker->enqueueCommand(phaseFunc);
+            emit sendCommandToQueue(phaseFunc);
 
             AddressedCommand phaseRate;
             phaseRate.name = "PumpB";
             phaseRate.cmd = PumpCommand::SetFlowRate;
             phaseRate.value = QString::number(phase.rate);
-            commandWorker->enqueueCommand(phaseRate);
+            emit sendCommandToQueue(phaseRate);
 
             if (phase.volume > 0){
                 // if volume is zero, lets it run forever
@@ -228,13 +228,13 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
                 phaseVol.name = "PumpB";
                 phaseVol.cmd = PumpCommand::SetVolume;
                 phaseVol.value = QString::number(phase.volume);
-                commandWorker->enqueueCommand(phaseVol);
+                emit sendCommandToQueue(phaseVol);
             }
 
             AddressedCommand phaseDir;
             phaseDir.name = "PumpB";
             phaseDir.cmd = PumpCommand::SetFlowDirection;
-            commandWorker->enqueueCommand(phaseDir);
+            emit sendCommandToQueue(phaseDir);
         }
         else if (phase.function == "LIN")
         {
@@ -256,10 +256,10 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             phaseDir.name = "PumpB";
             phaseDir.cmd = PumpCommand::SetFlowDirection;
 
-            commandWorker->enqueueCommand(phaseFunc);
-            commandWorker->enqueueCommand(phaseRate);
-            commandWorker->enqueueCommand(phaseTime);
-            commandWorker->enqueueCommand(phaseDir);
+            emit sendCommandToQueue(phaseFunc);
+            emit sendCommandToQueue(phaseRate);
+            emit sendCommandToQueue(phaseTime);
+            emit sendCommandToQueue(phaseDir);
         }
         else if (phase.function == "PAUSE")
         {
@@ -273,15 +273,15 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             //phaseTime.cmd = PumpCommand::SetPause;
             //phaseTime.value = phase.time;
 
-            commandWorker->enqueueCommand(phaseFunc);
-            //commandWorker->enqueueCommand(phaseTime);
+            emit sendCommandToQueue(phaseFunc);
+            //emit sendCommandToQueue(phaseTime);
           //  qDebug() << "TIME: " << phase.time;
         }
         else if (phase.function == "STOP"){
             AddressedCommand stopPhase;
             stopPhase.name = "PumpB";
             stopPhase.cmd = PumpCommand::StopFunction;
-            commandWorker->enqueueCommand(stopPhase);
+            emit sendCommandToQueue(stopPhase);
         }
     }
 }

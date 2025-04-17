@@ -36,6 +36,7 @@ public slots:
 
 
 signals:
+    void sendCommandToQueue(const AddressedCommand& command);
     void dataReceived(const QString &data);
     void errorOccurred(const QString &message);
 
