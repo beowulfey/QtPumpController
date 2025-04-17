@@ -108,10 +108,11 @@ private:
     CondInterface *condInterface = nullptr;
     QVector<double>condReadings;
     QVector<double> condPreReadings;
-    const int condPreSaveWindow = 120;
+    int condPreSaveWindow = 60;
 
-
+    void updateCondPlot(); // called upon getting a new measurement
     QVector<QVector<PumpPhase>> generatePumpPhases(int startPhase, const QVector<QVector<double>>& segments) ;
     QVector<double> calculateFlowRates(double concentration) const;
+    QVector<double> generateRangeScaled(double start, double end, double step = 0.5);
 };
 #endif // PUMPCONTROLLER_H

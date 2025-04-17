@@ -77,12 +77,14 @@ bool CondInterface::connectToMeter(const QString &portName, qint32 baudRate) {
 
 void CondInterface::getMeasurement()
 {
+    qDebug() << "CONDINTERFACE: Emitting measurement request";
     QString cmd = "GETMEAS\r";
     emit sendCommand(cmd);
 }
 
 bool CondInterface::sendToMeter(const QString &cmd)
 {
+    qDebug() << "CondInterface sending to serial port";
     QByteArray packet = cmd.toUtf8();
     qint64 bytesWritten = serial->write(packet);
     return bytesWritten == packet.size();
@@ -108,7 +110,7 @@ void CondInterface::handleReadyRead() {
             emit messageReceived(response);
         }
         else if (response.contains("Conductivity")) {
-            //qDebug()<<"Measurement detected";
+            qDebug()<<"Measurement detected";
             QStringList fields = response.split(',');
 
             if (fields.size() >= 12) {

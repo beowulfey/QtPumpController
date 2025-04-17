@@ -214,6 +214,67 @@ void PumpController::saveConsole()
 
 }
 
+void PumpController::confirmSettings()
+{
+    writeToConsole("PUMP SETTINGS CONFIRMED: ", UiGreen);
+    writeToConsole("Flow Rate (mL/min): " + QString::number(ui->spinFlowRate->value(), 'f', 2) +
+                       " | Pump A (mM): " + QString::number(ui->spinPac->value(), 'f', 0) +
+                       " | Pump B (mM): " + QString::number(ui->spinPbc->value(), 'f', 0), UiGreen);
+    if (pumpComPort == "None" || condComPort == "None" ) {
+        writeToConsole("Confirm ports for pumps and meter! At least one was not selected!", UiRed);
+    }
+    ui->butConfirmSettings->setStyleSheet("QPushButton { color: mediumseagreen;}");
+    ui->butConfirmSettings->setText("Confirmed");
+
+
+    ui->spinSegTime->setEnabled(1);
+    ui->spinStartConc->setEnabled(1);
+    ui->spinEndConc->setEnabled(1);
+    //ui->butAddSegment->setEnabled(1);
+    //ui->butClearSegments->setEnabled(1);
+    //ui->butDeleteSegment->setEnabled(1);
+    //ui->tableSegments->setEnabled(1);
+    ui->butStartProtocol->setEnabled(1);
+    //ui->butStopProtocol->setEnabled(1);
+    ui->butConfirmSettings->setDisabled(1);
+    ui->spinSegTime->setMaximum(120); // # 30 minutes maximum time; limit of pump pause?
+    ui->protocolPlot->setYAxis(ui->spinPac->value(), ui->spinPbc->value());
+    ui->spinStartConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
+    ui->spinEndConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
+    tableModel->updateSegments();
+    if (!pumpComPort.isEmpty()) {
+        ui->spinStraightConc->setEnabled(1);
+        ui->butStartPump->setEnabled(1);
+        ui->butUpdatePump->setEnabled(1);
+        ui->butStopPump->setEnabled(1);
+        ui->butSendProtocol->setEnabled(1);
+    }
+    //
+
+}
+
+void PumpController::settingsChanged()
+{
+
+    ui->butConfirmSettings->setEnabled(1);
+    ui->butConfirmSettings->setStyleSheet(ui->butResetCond->styleSheet());
+    ui->butConfirmSettings->setText("Confirm");
+    ui->spinStraightConc->setDisabled(1);
+    ui->butStartPump->setDisabled(1);
+    ui->butUpdatePump->setDisabled(1);
+    ui->butStopPump->setDisabled(1);
+    ui->spinSegTime->setDisabled(1);
+    ui->spinStartConc->setDisabled(1);
+    ui->spinEndConc->setDisabled(1);
+    //ui->butAddSegment->setDisabled(1);
+    //ui->butClearSegments->setDisabled(1);
+
+    //ui->tableSegments->setDisabled(1);
+    ui->butStartProtocol->setDisabled(1);
+    ui->butStopProtocol->setDisabled(1);
+    ui->butSendProtocol->setDisabled(1);
+
+}
 
 void PumpController::openCOMsDialog()
 {
@@ -294,9 +355,39 @@ void PumpController::receiveCondMeasurement(CondReading reading)
         condReadings.append(mSReading);
         qDebug() << QTime::currentTime() << ": collecting protocol readings";
     }
+    updateCondPlot();
+}
 
+void PumpController::updateCondPlot()
+/* This function is called after a conductivity measurement is received.
+ * It updates the conductivity plot using the stored measurements.
+ */
+{
+    // Update Y values.
+    int preX = 0-(condPreReadings.length() * currProtocol->dt());
+    QVector<double> condXvals = generateRangeScaled(preX, -1*currProtocol->dt());
+    QVector<double> condYvals = condPreReadings;
+    qDebug() << "X,Y: " << condXvals.length() << condYvals.length() << " matches " << preX;
+    if (runTimer->isActive())
+    {
+        QVector<double> postXs = generateRangeScaled(0, (condReadings.length()-1)*currProtocol->dt());
+        condXvals.append(postXs);
+        condYvals.append(condReadings);
+    }
+    if (!condYvals.isEmpty()) {
+        auto [minIt, maxIt] = std::minmax_element(condYvals.constBegin(), condYvals.constEnd());
+        ui->condPlot->setYAxis(*minIt, *maxIt);
+    }
+
+    if (condXvals.length() == condYvals.length())
+    {
+        ui->condPlot->setData(condXvals, condYvals);
+    }
 
 }
+
+
+
 
 void PumpController::initiatePumps()
 // For this, Pump A is address 0, Pump B is address 1
@@ -328,9 +419,9 @@ void PumpController::receivePumpResponse(const QString& msg)
 {
     int source = msg.left(2).toInt();
     if (source == 0) {
-        writeToConsole(QString("Pump A response: ")+ msg, UiYellow);
+        writeToConsole(QString("Pump A message: ")+ msg, UiBlue);
     } else if (source == 1) {
-        writeToConsole(QString("Pump B response: ")+ msg, UiYellow);
+        writeToConsole(QString("Pump B message: ")+ msg, UiBlue);
         }
     else {
         writeToConsole(QString("Pump Msg: ")+msg);
@@ -339,67 +430,7 @@ void PumpController::receivePumpResponse(const QString& msg)
 
 }
 
-void PumpController::confirmSettings()
-{
-    writeToConsole("PUMP SETTINGS CONFIRMED: ", UiGreen);
-    writeToConsole("Flow Rate (mL/min): " + QString::number(ui->spinFlowRate->value(), 'f', 2) +
-                              " | Pump A (mM): " + QString::number(ui->spinPac->value(), 'f', 0) +
-                              " | Pump B (mM): " + QString::number(ui->spinPbc->value(), 'f', 0), UiGreen);
-    if (pumpComPort == "None" || condComPort == "None" ) {
-        writeToConsole("Confirm ports for pumps and meter! At least one was not selected!", UiRed);
-    }
-    ui->butConfirmSettings->setStyleSheet("QPushButton { color: mediumseagreen;}");
-    ui->butConfirmSettings->setText("Confirmed");
 
-
-    ui->spinSegTime->setEnabled(1);
-    ui->spinStartConc->setEnabled(1);
-    ui->spinEndConc->setEnabled(1);
-    //ui->butAddSegment->setEnabled(1);
-    //ui->butClearSegments->setEnabled(1);
-    //ui->butDeleteSegment->setEnabled(1);
-    //ui->tableSegments->setEnabled(1);
-    ui->butStartProtocol->setEnabled(1);
-    //ui->butStopProtocol->setEnabled(1);
-    ui->butConfirmSettings->setDisabled(1);
-    ui->spinSegTime->setMaximum(120); // # 30 minutes maximum time; limit of pump pause?
-    ui->protocolPlot->setYAxis(ui->spinPac->value(), ui->spinPbc->value());
-    ui->spinStartConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
-    ui->spinEndConc->setMaximum(std::max(ui->spinPac->value(), ui->spinPbc->value()));
-    tableModel->updateSegments();
-    if (!pumpComPort.isEmpty()) {
-        ui->spinStraightConc->setEnabled(1);
-        ui->butStartPump->setEnabled(1);
-        ui->butUpdatePump->setEnabled(1);
-        ui->butStopPump->setEnabled(1);
-        ui->butSendProtocol->setEnabled(1);
-    }
-    //
-
-}
-
-void PumpController::settingsChanged()
-{
-
-    ui->butConfirmSettings->setEnabled(1);
-    ui->butConfirmSettings->setStyleSheet(ui->butResetCond->styleSheet());
-    ui->butConfirmSettings->setText("Confirm");
-    ui->spinStraightConc->setDisabled(1);
-    ui->butStartPump->setDisabled(1);
-    ui->butUpdatePump->setDisabled(1);
-    ui->butStopPump->setDisabled(1);
-    ui->spinSegTime->setDisabled(1);
-    ui->spinStartConc->setDisabled(1);
-    ui->spinEndConc->setDisabled(1);
-    //ui->butAddSegment->setDisabled(1);
-    //ui->butClearSegments->setDisabled(1);
-
-    //ui->tableSegments->setDisabled(1);
-    ui->butStartProtocol->setDisabled(1);
-    ui->butStopProtocol->setDisabled(1);
-    ui->butSendProtocol->setDisabled(1);
-
-}
 
 
 // SEGMENT SLOTS
@@ -456,16 +487,10 @@ void PumpController::clearSegments()
 void PumpController::updateProtocol()
 // Not a button, but called automatically whenever the protocol changes.
 {
-    //if (tableModel->rowCount(QModelIndex())>0)
-    //{
     currProtocol->generate(tableModel->getSegments());
-    //qDebug()<<currProtocol->xvals();
-    //qDebug()<<currProtocol->yvals();
     ui->protocolPlot->setData(currProtocol->xvals(),currProtocol->yvals());
+    ui->butStartProtocol->setDisabled(1);
 
-    //} else {
-        //writeToConsole("I'm afraid you can't update with an empty protocol.", UiYellow);
-    //}
 
 }
 
@@ -566,6 +591,7 @@ void PumpController::sendProtocol()
     writeToConsole("Sent protocol to pumps", UiBlue);
     QVector<QVector<PumpPhase>> phases = generatePumpPhases(1, tableModel->getSegments());
     pumpInterface->setPhases(phases);
+    ui->butStartProtocol->setEnabled(1);
 }
 
 
@@ -607,7 +633,7 @@ void PumpController::timerTick()
 {
     if (condInterface)
     {
-        qDebug()<<"requesting Measurement";
+        //qDebug()<<"requesting Measurement";
         condInterface->getMeasurement();
     }
     if (runTimer->isActive())
@@ -863,4 +889,22 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
     return { phasesA, phasesB };
 }
 
+QVector<double> PumpController::generateRangeScaled(double start, double end, double step)
+/* Wrote this for generating the preY values, using the length of the
+ * preYsaved vector as the length. Called by the updateCondPlot function
+ */
+{
+    step = currProtocol->dt();
+    QVector<double> result;
+    // Scale all values by 10 (or 100, 1000 if step is smaller)
+    int scale = 10;
+    int startInt = static_cast<int>(start * scale);
+    int endInt = static_cast<int>(end * scale);
+    int stepInt = static_cast<int>(step * scale);
 
+    for (int i = startInt; i <= endInt; i += stepInt) {
+        result.append(i / static_cast<double>(scale) / 60 ); //convert to minutes
+    }
+
+    return result;
+}

@@ -2,7 +2,7 @@
 
 
 Protocol::Protocol(QObject* parent)
-    : QObject(parent), timeStep(0.5) {
+    : QObject(parent), timeStep(1) {
     generate({});
 }
 
