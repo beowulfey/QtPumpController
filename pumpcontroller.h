@@ -8,6 +8,7 @@
 #include "protocol.h"
 #include "pumpcommands.h"
 #include "pumpinterface.h"
+#include "condinterface.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -41,15 +42,22 @@ public slots:
     void rmSegment();
     void clearSegments();
 
-    void updateProtocol();
-    //void updatePumps();
+    void updateProtocol(); // updates plot upon changes to TableModel
+
+    // User button slots
     void startProtocol();
     void sendProtocol();
     void stopProtocol();
 
+    void startPumps();
+    void updatePumps();
+    void stopPumps();
+
     void initiatePumps();
+    void initiateCond();
     void receivePumpError(const QString& err);
     void receivePumpResponse(const QString& msg);
+    void receiveCondMeasurement(CondReading reading);
 
     void timerTick();
 
@@ -96,7 +104,12 @@ private:
     //QTimer *condTimer;
     Protocol *currProtocol;
     bool protocolChanged;
-    PumpInterface *pumpInterface;
+    PumpInterface *pumpInterface = nullptr;
+    CondInterface *condInterface = nullptr;
+    QVector<double>condReadings;
+    QVector<double> condPreReadings;
+    const int condPreSaveWindow = 120;
+
 
     QVector<QVector<PumpPhase>> generatePumpPhases(int startPhase, const QVector<QVector<double>>& segments) ;
     QVector<double> calculateFlowRates(double concentration) const;

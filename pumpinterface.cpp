@@ -25,7 +25,7 @@ PumpInterface::PumpInterface(QObject *parent)
         {1, "PumpB"}
     };
     workerThread = new QThread;
-    commandWorker = new PumpCommandWorker(this);
+    commandWorker = new PumpCommandWorker(this, nullptr);
     commandWorker->moveToThread(workerThread);
     workerThread->start();
     connect(commandWorker, &PumpCommandWorker::pumpCommandReady,
@@ -131,24 +131,26 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             AddressedCommand phaseFunc;
             phaseFunc.name = "PumpA";
             phaseFunc.cmd = PumpCommand::RateFunction;
+            commandWorker->enqueueCommand(phaseFunc);
 
             AddressedCommand phaseRate;
             phaseRate.name = "PumpA";
             phaseRate.cmd = PumpCommand::SetFlowRate;
             phaseRate.value = QString::number(phase.rate);
+            commandWorker->enqueueCommand(phaseRate);
 
-            AddressedCommand phaseVol;
-            phaseVol.name = "PumpA";
-            phaseVol.cmd = PumpCommand::SetVolume;
-            phaseVol.value = QString::number(phase.volume);
+            if (phase.volume > 0){
+                // if volume is zero, lets it run forever
+                AddressedCommand phaseVol;
+                phaseVol.name = "PumpA";
+                phaseVol.cmd = PumpCommand::SetVolume;
+                phaseVol.value = QString::number(phase.volume);
+                commandWorker->enqueueCommand(phaseVol);
+            }
 
             AddressedCommand phaseDir;
             phaseDir.name = "PumpA";
             phaseDir.cmd = PumpCommand::SetFlowDirection;
-
-            commandWorker->enqueueCommand(phaseFunc);
-            commandWorker->enqueueCommand(phaseRate);
-            commandWorker->enqueueCommand(phaseVol);
             commandWorker->enqueueCommand(phaseDir);
         }
         else if (phase.function == "LIN")
@@ -212,24 +214,26 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
             AddressedCommand phaseFunc;
             phaseFunc.name = "PumpB";
             phaseFunc.cmd = PumpCommand::RateFunction;
+            commandWorker->enqueueCommand(phaseFunc);
 
             AddressedCommand phaseRate;
             phaseRate.name = "PumpB";
             phaseRate.cmd = PumpCommand::SetFlowRate;
             phaseRate.value = QString::number(phase.rate);
+            commandWorker->enqueueCommand(phaseRate);
 
-            AddressedCommand phaseVol;
-            phaseVol.name = "PumpB";
-            phaseVol.cmd = PumpCommand::SetVolume;
-            phaseVol.value = QString::number(phase.volume);
+            if (phase.volume > 0){
+                // if volume is zero, lets it run forever
+                AddressedCommand phaseVol;
+                phaseVol.name = "PumpB";
+                phaseVol.cmd = PumpCommand::SetVolume;
+                phaseVol.value = QString::number(phase.volume);
+                commandWorker->enqueueCommand(phaseVol);
+            }
 
             AddressedCommand phaseDir;
             phaseDir.name = "PumpB";
             phaseDir.cmd = PumpCommand::SetFlowDirection;
-
-            commandWorker->enqueueCommand(phaseFunc);
-            commandWorker->enqueueCommand(phaseRate);
-            commandWorker->enqueueCommand(phaseVol);
             commandWorker->enqueueCommand(phaseDir);
         }
         else if (phase.function == "LIN")

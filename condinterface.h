@@ -1,31 +1,18 @@
 #ifndef CONDINTERFACE_H
 #define CONDINTERFACE_H
 
+#include "condworker.h"
 #include <QObject>
 #include <QSerialPort>
 #include <QThread>
 
-struct CondReading {
-    double value = 0.0;
-    QString units;
-};
+// This particular conductivity meter (Thermo Orion Lab Star EC112) is not great and has very minimal USB connectivity.
+// I can basically only call GETMEAS, which gets a measurement, so that's what I'll be programming!
+// Originally, I had the software set the current time on connect; may add that back.
 
-class CondWorker : public QObject {
-    Q_OBJECT
-public:
-    explicit CondWorker(QObject* parent = nullptr);
-    void setPort(QSerialPort* port);
+// Simple struct to hold a conductivity measurement
 
-public slots:
-    void requestMeasurement();
 
-signals:
-    void finished(CondReading reading);
-    void error(QString message);
-
-private:
-    QSerialPort* serialPort = nullptr;
-};
 
 class CondInterface : public QObject {
     Q_OBJECT
@@ -33,17 +20,31 @@ public:
     explicit CondInterface(QObject* parent = nullptr);
     ~CondInterface();
 
-    void setSerialPort(QSerialPort* port);
+    bool connectToMeter(const QString &portName, qint32 baudRate = QSerialPort::Baud9600);
     void getMeasurement();
+    void shutdown();
+
+public slots:
+    void handleCommand(const QString &cmd);
+
 
 signals:
-    void goMeasure();
+    void messageReceived(const QString &data);
     void measurementReceived(CondReading reading);
-    void errorOccurred(QString message);
+    void errorOccurred(const QString &message);
+    void sendCommand(const QString& cmd);
+
+private slots:
+    void handleReadyRead();
+    void handleError(QSerialPort::SerialPortError error);
 
 private:
-    QThread workerThread;
-    CondWorker* worker = nullptr;
+    bool sendToMeter(const QString &cmd);
+    QThread *workerThread;
+    CondWorker *condWorker;
+    QSerialPort *serial;
+    QByteArray serialBuffer;
+
 };
 
 #endif // CONDINTERFACE_H
