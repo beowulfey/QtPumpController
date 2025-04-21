@@ -340,6 +340,7 @@ void PumpController::receiveCondMeasurement(CondReading reading)
         ui->label_cond->setText(QString::number(mSReading, 'f', 2));
     } else if (reading.units == "uS/cm")
     {
+        qDebug() << "in this if?";
         mSReading = reading.value / 1000;
         ui->label_cond->setText(QString::number(mSReading,'f',2));
     }
@@ -347,6 +348,8 @@ void PumpController::receiveCondMeasurement(CondReading reading)
     if (!runTimer->isActive())
     {
         // Save the previous 120 measurements (aka 1 minute).
+
+        qDebug() << "Run Timer Not Active";
         if (condPreReadings.size() >= condPreSaveWindow) {
             condPreReadings.pop_front();  // Remove oldest
         }
