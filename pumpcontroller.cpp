@@ -19,6 +19,8 @@ PumpController::PumpController(QWidget *parent)
     ui->setupUi(this);
     this->setWindowTitle(QString("Pump Controller"));
 
+    condPreSaveWindow = currProtocol->dt() * 60; // seconds
+
     QFont monoFont;
 
 #ifdef Q_OS_MAC
@@ -331,7 +333,7 @@ void PumpController::initiateCond()
 
 void PumpController::receiveCondMeasurement(CondReading reading)
 {
-    //qDebug() << "Conductivity:" << reading.value << reading.units;
+    qDebug() << "Conductivity:" << reading.value << reading.units;
     double mSReading = reading.value;
     if (reading.units == "mS/cm")
     {
