@@ -37,6 +37,7 @@ public slots:
     void setCOMs(const QString& cond, const QString& pump);
     void confirmSettings();
     void settingsChanged();
+    void setCondFile();
 
     void addSegment();
     void rmSegment();
@@ -61,37 +62,14 @@ public slots:
 
     void timerTick();
 
+    void resetCondPlot(); //currently unused
 
-
-
-    //void timerTick();
-
-
-    //void resetPumps();
-    //void updatePumps();
-    //void startPump();
-    //void stopPump();
-    //void setCondMin();
-    //void setCondMax();
-    //void resetCond();
-    //void receiveReading();
-    //void condTimerTick();
-    //void beginRecordCond();
-    //void stopRecordCond();
-
-    //void saveCond();
-
-
-    //void stopProtocol();
-    //void addSegment();
-    //void rmSegment();
-    //void clearSegments();
-    //void updateProtocol();
-    //void updatePumpProgram();
 
 
 private:
     QTime startTime;
+    QString experimentDirectory;
+    QMap<QTime, QPair<QVector<double>, QVector<double>>> savedRuns;
     Ui::PumpController *ui;
     //PumpCommandWorker *commandWorker;
     QString pumpComPort;
@@ -111,6 +89,7 @@ private:
     int condPreSaveWindow = 60;
 
     void updateCondPlot(); // called upon getting a new measurement
+    void saveCurrentRun(); // stores conductivity plot to a QMap
     QVector<QVector<PumpPhase>> generatePumpPhases(int startPhase, const QVector<QVector<double>>& segments) ;
     QVector<double> calculateFlowRates(double concentration) const;
     QVector<double> generateRangeScaled(double start, double end, double step = 0.5);

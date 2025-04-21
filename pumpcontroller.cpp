@@ -19,7 +19,6 @@ PumpController::PumpController(QWidget *parent)
     ui->setupUi(this);
     this->setWindowTitle(QString("Pump Controller"));
 
-    condPreSaveWindow = currProtocol->dt() * 60; // seconds
 
     QFont monoFont;
 
@@ -46,6 +45,7 @@ PumpController::PumpController(QWidget *parent)
     ui->tableSegments->setSelectionMode(QAbstractItemView::NoSelection);
     ui->tableSegments->setSelectionBehavior(QAbstractItemView::SelectRows);
     currProtocol = new Protocol(this);
+    condPreSaveWindow = currProtocol->dt() * 60; // seconds
 
     // Timer stuff
     runTimer = new QTimer(this);
@@ -79,14 +79,28 @@ PumpController::PumpController(QWidget *parent)
     ui->butStopProtocol->setDisabled(1);
     ui->butSendProtocol->setDisabled(1);
     //ui->butDeleteSegment->setDisabled(1);
-    ui->butSetCondMin->setDisabled(1);
-    ui->butSetCondMax->setDisabled(1);
-    ui->butResetCond->setDisabled(1);
+    //ui->butSetCondMin->setDisabled(1);
+    //ui->butSetCondMax->setDisabled(1);
+   // ui->butResetCond->setDisabled(1);
 
     // Adjust the conductivity plot from default
     ui->condPlot->setYlabel("mS/cm");
     ui->label_cond_units->setText("mS/cm");
-    ui->condPlot->setYAxis(0,15);
+    //ui->condPlot->setYAxis(0,15);
+
+    //if (ui->butSetCondMin) {
+    //    ui->gridLayout_7->removeWidget(ui->butSetCondMin); // remove from layout
+    //    ui->butSetCondMin->hide();                         // optional: hide immediately
+    //    ui->butSetCondMin->deleteLater();                  // safely delete the widget
+    //    ui->butSetCondMin = nullptr;                       // clear the pointer if needed
+    //}
+
+    //if (ui->butSetCondMax) {
+    //    ui->gridLayout_7->removeWidget(ui->butSetCondMax); // remove from layout
+    //    ui->butSetCondMax->hide();                         // optional: hide immediately
+    //    ui->butSetCondMax->deleteLater();                  // safely delete the widget
+    //    ui->butSetCondMax = nullptr;                       // clear the pointer if needed
+    //}
 
 
 
@@ -127,6 +141,7 @@ PumpController::PumpController(QWidget *parent)
 
     connect(runTimer, &QTimer::timeout, this, &PumpController::stopProtocol);
     connect(intervalTimer, &QTimer::timeout, this, &PumpController::timerTick);
+    connect(ui->butSelectCondLog, &QPushButton::clicked, this, &PumpController::setCondFile);
 
 
     // Run timers, for protocol stuff
@@ -195,7 +210,17 @@ void PumpController::clearConsole()
 
 void PumpController::saveConsole()
 {
-    QString saveFile = QFileDialog::getSaveFileName(this, tr("Save Console Text"),QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
+    QString defaultDir = experimentDirectory.isEmpty()
+    ? QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)
+    : experimentDirectory;
+
+    QString saveFile = QFileDialog::getSaveFileName(this, tr("Save Console Text"), defaultDir);
+
+    if (!saveFile.isEmpty()) {
+        QFileInfo fileInfo(saveFile);
+        experimentDirectory = fileInfo.absolutePath();  // Update for next time
+    }
+
     QFile colorFile(saveFile+"_colors.md");
     QFile plainFile(saveFile+".txt");
     if (plainFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -212,7 +237,67 @@ void PumpController::saveConsole()
     } else {
         qWarning() << "Could not open file for writing:" << saveFile+"_color.md";
     }
-    writeToConsole("Wrote plain text and color version of logs to "+saveFile, UiYellow);
+    writeToConsole("Wrote plain text and color version of logs to "+saveFile+"{.txt|_colors.md}", UiYellow);
+
+}
+
+void PumpController::setCondFile()
+{
+    QString defaultDir = experimentDirectory.isEmpty()
+    ? QStandardPaths::writableLocation(QStandardPaths::DesktopLocation)
+    : experimentDirectory;
+
+    QString saveFile = QFileDialog::getSaveFileName(this, tr("Save Console Text"), defaultDir);
+
+    if (!saveFile.isEmpty()) {
+        QFileInfo fileInfo(saveFile);
+        experimentDirectory = fileInfo.absolutePath();  // Update for next time
+    }
+    QFile csvFile(saveFile+".csv");
+    if (csvFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&csvFile);
+
+        // --- Write the header ---
+        for (auto it = savedRuns.constBegin(); it != savedRuns.constEnd(); ++it) {
+            out << "\"" << it.key().toString("HH:mm:ss") << "\",\"\"";
+            if (it != std::prev(savedRuns.constEnd())) {
+                out << ","; // Comma between column groups
+            }
+        }
+        out << "\n";
+
+        // --- Determine max row count across all entries ---
+        int maxLen = 0;
+        for (const auto& pair : savedRuns) {
+            maxLen = std::max(maxLen, std::max(int(pair.first.size()), int(pair.second.size())));
+        }
+
+        // --- Write data rows ---
+        for (int i = 0; i < maxLen; ++i) {
+            int col = 0;
+            for (const auto& pair : savedRuns) {
+                const QList<double>& xvals = pair.first;
+                const QList<double>& yvals = pair.second;
+
+                if (i < xvals.size())
+                    out << QString::number(xvals[i], 'f', 6);
+                out << ",";
+
+                if (i < yvals.size())
+                    out << QString::number(yvals[i], 'f', 6);
+
+                if (++col < savedRuns.size())
+                    out << ",";
+            }
+            out << "\n";
+        }
+
+        csvFile.close();
+    }
+     else {
+        qWarning() << "Could not open file for writing:" << saveFile+".txt";
+    }
+    writeToConsole("Writing conductivity data to "+saveFile+".csv", UiYellow);
 
 }
 
@@ -259,7 +344,7 @@ void PumpController::settingsChanged()
 {
 
     ui->butConfirmSettings->setEnabled(1);
-    ui->butConfirmSettings->setStyleSheet(ui->butResetCond->styleSheet());
+    //ui->butConfirmSettings->setStyleSheet(ui->butResetCond->styleSheet());
     ui->butConfirmSettings->setText("Confirm");
     ui->spinStraightConc->setDisabled(1);
     ui->butStartPump->setDisabled(1);
@@ -333,14 +418,14 @@ void PumpController::initiateCond()
 
 void PumpController::receiveCondMeasurement(CondReading reading)
 {
-    qDebug() << "Conductivity:" << reading.value << reading.units;
+    //qDebug() << "Conductivity:" << reading.value << reading.units;
     double mSReading = reading.value;
     if (reading.units == "mS/cm")
     {
         ui->label_cond->setText(QString::number(mSReading, 'f', 2));
     } else if (reading.units == "uS/cm")
     {
-        qDebug() << "in this if?";
+        //qDebug() << "in this if?";
         mSReading = reading.value / 1000;
         ui->label_cond->setText(QString::number(mSReading,'f',2));
     }
@@ -349,16 +434,16 @@ void PumpController::receiveCondMeasurement(CondReading reading)
     {
         // Save the previous 120 measurements (aka 1 minute).
 
-        qDebug() << "Run Timer Not Active";
+        //qDebug() << "Run Timer Not Active";
         if (condPreReadings.size() >= condPreSaveWindow) {
             condPreReadings.pop_front();  // Remove oldest
         }
 
         condPreReadings.push_back(mSReading);  // Add newest
-        qDebug() << QTime::currentTime() << ": added to previous readings";
+        //qDebug() << QTime::currentTime() << ": added to previous readings";
     } else {
         condReadings.append(mSReading);
-        qDebug() << QTime::currentTime() << ": collecting protocol readings";
+        //qDebug() << QTime::currentTime() << ": collecting protocol readings";
     }
     updateCondPlot();
 }
@@ -372,17 +457,19 @@ void PumpController::updateCondPlot()
     int preX = 0-(condPreReadings.length() * currProtocol->dt());
     QVector<double> condXvals = generateRangeScaled(preX, -1*currProtocol->dt());
     QVector<double> condYvals = condPreReadings;
-    qDebug() << "X,Y: " << condXvals.length() << condYvals.length() << " matches " << preX;
+    //qDebug() << "X,Y: " << condXvals.length() << condYvals.length() << " matches " << preX;
     if (runTimer->isActive())
     {
         QVector<double> postXs = generateRangeScaled(0, (condReadings.length()-1)*currProtocol->dt());
         condXvals.append(postXs);
         condYvals.append(condReadings);
     }
-    if (!condYvals.isEmpty()) {
-        auto [minIt, maxIt] = std::minmax_element(condYvals.constBegin(), condYvals.constEnd());
-        ui->condPlot->setYAxis(*minIt, *maxIt);
-    }
+    //if (!condYvals.isEmpty()) {
+    //    auto [minIt, maxIt] = std::minmax_element(condYvals.constBegin(), condYvals.constEnd());
+    //    qDebug() << "MIN/MAX" << *minIt << *maxIt;
+    //    ui->condPlot->setYAxis(*minIt, *maxIt);
+
+    //}
 
     if (condXvals.length() == condYvals.length())
     {
@@ -391,6 +478,10 @@ void PumpController::updateCondPlot()
 
 }
 
+void PumpController::resetCondPlot()
+{
+
+}
 
 
 
@@ -603,6 +694,10 @@ void PumpController::sendProtocol()
 void PumpController::stopProtocol()
 // This is called upon hitting Stop Protocol button
 {
+    if (!condComPort.isEmpty()) {
+        saveCurrentRun();
+    }
+
     if (runTimer->isActive())
     {
         writeToConsole("Protocol stopped", UiYellow);
@@ -629,6 +724,7 @@ void PumpController::stopProtocol()
         ui->butSendProtocol->setEnabled(1);
         pumpInterface->stopPumps();
     }
+
 
 
 }
@@ -912,4 +1008,10 @@ QVector<double> PumpController::generateRangeScaled(double start, double end, do
     }
 
     return result;
+}
+
+void PumpController::saveCurrentRun()
+{
+    QVector<QVector<double>> data= ui->condPlot->getData();
+    savedRuns.insert(startTime, qMakePair(data.value(0), data.value(1)));
 }

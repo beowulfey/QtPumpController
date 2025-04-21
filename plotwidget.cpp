@@ -25,6 +25,7 @@ PlotWidget::PlotWidget(QWidget *parent)
     QVBoxLayout *layout = new QVBoxLayout();
     layout->addWidget(plot);
     setLayout(layout);
+    setYAxis(0,1);
 
     onChange();
 }
@@ -39,6 +40,7 @@ double PlotWidget::x() const {
 }
 
 void PlotWidget::setYAxis(int pac, int pbc) {
+    qDebug() << "updating Yaxes " << pac << " "<< pbc;
     yBot = std::min(pac, pbc);
     yTop = std::max(pac, pbc);
     onChange();
@@ -92,6 +94,15 @@ void PlotWidget::setData(QVector<double> xVals, QVector<double> yVals) {
     onChange();
 }
 
+
+QVector<QVector<double>> PlotWidget::getData()
+{
+    QVector<QVector<double>> result;
+    result.append(xData);
+    result.append(yData);
+    return result;
+}
+
 void PlotWidget::appendData(double x, double y) {
     xData.append(x);
     yData.append(y);
@@ -101,11 +112,21 @@ void PlotWidget::appendData(double x, double y) {
 void PlotWidget::onChange() {
     plot->clearItems();
     graph->setData(xData, yData);
+    qDebug() << "Updating data for plot; min/maxY is " << yBot << yTop;
 
 
     // Dynamic x/y range setup
     double xMin = 0.0, xMax = 10.0;
-    //double yMin = 0.0, yMax = 1.0;
+
+    double yMin = yBot, yMax = yTop;
+    if (yTop == yBot == 0)
+    {
+        if (!yData.isEmpty()) {
+            auto yMinMax = std::minmax_element(yData.constBegin(), yData.constEnd());
+            yMin = *yMinMax.first;
+            yMax = *yMinMax.second;
+        }
+    }
 
     if (!xData.isEmpty()) {
         auto xMinMax = std::minmax_element(xData.constBegin(), xData.constEnd());
@@ -113,12 +134,13 @@ void PlotWidget::onChange() {
         xMax = *xMinMax.second;
     }
 
+
     // Add padding
     double xPadding = (xMax - xMin) * 0.05;
-    double yPadding = (yTop - yBot) * 0.05;
+    double yPadding = (yMax - yMin) * 0.05;
 
     plot->xAxis->setRange(xMin - xPadding, xMax + xPadding);
-    plot->yAxis->setRange(yBot - yPadding, yTop + yPadding);
+    plot->yAxis->setRange(yMin - yPadding, yMax + yPadding);
 
     // Draw vertical line if needed
 

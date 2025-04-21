@@ -25,6 +25,7 @@ public:
     double getStart() const;
     void setStop();
     void setData(QVector<double> xVals, QVector<double> yVals);
+    QVector<QVector<double>> getData();
     void appendData(double x, double y);
     void onChange();
 
