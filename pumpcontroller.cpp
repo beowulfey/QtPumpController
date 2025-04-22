@@ -2,7 +2,7 @@
 #include <QDebug>
 
 #include "pumpcontroller.h"
-#include "ui_pumpcontroller-v2.h"
+#include "ui_pumpcontroller.h"
 #include "comsdialog.h"
 #include "theming.h"
 

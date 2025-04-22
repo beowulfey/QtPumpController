@@ -39,7 +39,7 @@ HEADERS += \
 
 FORMS += \
     comsdialog.ui \
-    pumpcontroller-v2.ui \
+    pumpcontroller-bak.ui \
     pumpcontroller.ui
 
 # Default rules for deployment.
