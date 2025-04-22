@@ -37,7 +37,7 @@
      <family>.AppleSystemUIFont</family>
     </font>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="15,0,1,3">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_4">
       <item>
