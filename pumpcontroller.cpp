@@ -406,7 +406,7 @@ void PumpController::initiateCond()
     }
     if (!condComPort.isEmpty())
     {
-        qDebug() <<"Creating cond";
+       //qDeb <<"Creating cond";
         condInterface = new CondInterface(this);
         condInterface->connectToMeter(condComPort);
         connect(condInterface, &CondInterface::measurementReceived,
@@ -466,7 +466,7 @@ void PumpController::updateCondPlot()
     }
     //if (!condYvals.isEmpty()) {
     //    auto [minIt, maxIt] = std::minmax_element(condYvals.constBegin(), condYvals.constEnd());
-    //    qDebug() << "MIN/MAX" << *minIt << *maxIt;
+    //   //qDeb << "MIN/MAX" << *minIt << *maxIt;
     //    ui->condPlot->setYAxis(*minIt, *maxIt);
 
     //}
@@ -672,7 +672,7 @@ void PumpController::startProtocol()
         }
         if (!condComPort.isEmpty()) {
             condReadings.clear();
-            qDebug() << QTime::currentTime() << "Cleared previous readings";
+           //qDeb << QTime::currentTime() << "Cleared previous readings";
             condInterface->getMeasurement();
         }
 
@@ -978,7 +978,7 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
         phaseA_stop.phaseNumber = phaseCounterA;
         phaseA_stop.function = "STOP";
         phasesA.append(phaseA_stop);
-       // qDebug() << "Stops: " << phaseCounterA << phaseCounterB;
+       ////qDeb << "Stops: " << phaseCounterA << phaseCounterB;
 
         // Pump B - Start
         PumpPhase phaseB_stop;

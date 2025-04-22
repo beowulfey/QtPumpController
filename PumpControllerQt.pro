@@ -19,7 +19,8 @@ SOURCES += \
     pumpcontroller.cpp \
     $$PWD/libs/qcustomplot/qcustomplot.cpp \
     pumpinterface.cpp \
-    tablemodel.cpp
+    tablemodel.cpp \
+    utils.cpp
 
 HEADERS += \
     comsdialog.h \
@@ -33,7 +34,8 @@ HEADERS += \
     $$PWD/libs/qcustomplot/qcustomplot.h \
     pumpinterface.h \
     tablemodel.h \
-    theming.h
+    theming.h \
+    utils.h
 
 FORMS += \
     pumpcontroller.ui \

@@ -40,7 +40,7 @@ double PlotWidget::x() const {
 }
 
 void PlotWidget::setYAxis(int pac, int pbc) {
-    qDebug() << "updating Yaxes " << pac << " "<< pbc;
+    //qDebug() << "updating Yaxes " << pac << " "<< pbc;
     yBot = std::min(pac, pbc);
     yTop = std::max(pac, pbc);
     onChange();
@@ -112,7 +112,7 @@ void PlotWidget::appendData(double x, double y) {
 void PlotWidget::onChange() {
     plot->clearItems();
     graph->setData(xData, yData);
-    qDebug() << "Updating data for plot; min/maxY is " << yBot << yTop;
+    //qDebug() << "Updating data for plot; min/maxY is " << yBot << yTop;
 
 
     // Dynamic x/y range setup

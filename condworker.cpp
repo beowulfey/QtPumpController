@@ -13,7 +13,7 @@ CondWorker::CondWorker(CondInterface* interface, QObject* parent)
 void CondWorker::enqueueCommand(const QString &command) {
     //qDebug() << "enqueueCommand running in thread:" << QThread::currentThread();
     //qDebug() << "condWorker lives in thread:" << this->thread();
-    qDebug() << "CondWorker Queued command: " << command;
+    //qDebug() << "CondWorker Queued command: " << command;
     commandQueue.enqueue(command);
     if (!processing) {
         processNext();
@@ -28,7 +28,7 @@ void CondWorker::processNext() {
         return;
     }
     QString cmd = commandQueue.dequeue();
-    qDebug()<<"CondWorker returning command";
+   // qDebug()<<"CondWorker returning command";
     emit condCommandReady(cmd);
     processing = true;
 }
