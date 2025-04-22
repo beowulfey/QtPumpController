@@ -38,8 +38,9 @@ HEADERS += \
     utils.h
 
 FORMS += \
-    pumpcontroller.ui \
-    comsdialog.ui
+    comsdialog.ui \
+    pumpcontroller-v2.ui \
+    pumpcontroller.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
