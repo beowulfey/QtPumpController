@@ -63,6 +63,7 @@ PumpController::PumpController(QWidget *parent)
     ui->spinFlowRate->setValue(0.4);
     ui->spinPac->setValue(0);
     ui->spinPbc->setValue(125);
+    ui->spinStraightConc->setMaximum(500); // fix this later, should be = to confirmed PaC
 
     // Disable everything before confirmation
     ui->spinStraightConc->setDisabled(1);
@@ -597,7 +598,8 @@ void PumpController::startPumps()
 void PumpController::updatePumps()
 {
     double conc = ui->spinStraightConc->value();
-    QVector<QVector<double>> run = { QVector<double>{conc} };
+    QVector<QVector<double>> run = { QVector<double>{0, conc, conc} };
+   //qDebug() << run;
     QVector<QVector<PumpPhase>> phases = generatePumpPhases(0, run);
     pumpInterface->setPhases(phases);
 }
@@ -685,6 +687,7 @@ void PumpController::sendProtocol()
 {
     // Protocol phases start at Phase 2, so set offset to 1 (to skip first phase).
     writeToConsole("Sent protocol to pumps", UiBlue);
+    qDebug() << tableModel->getSegments();
     QVector<QVector<PumpPhase>> phases = generatePumpPhases(1, tableModel->getSegments());
     pumpInterface->setPhases(phases);
     ui->butStartProtocol->setEnabled(1);
@@ -775,22 +778,27 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
 {
     QVector<PumpPhase> phasesA;
     QVector<PumpPhase> phasesB;
-
+   //qDebug() << "Start phase is " <<startPhase;
     int phaseCounterA = startPhase + 1;     // startPhase is 0 for base run or 1 for program
     int phaseCounterB = startPhase + 1;
 
-    if (segments[0].size() ==1 ) // non-protocol version
+    if (startPhase == 0 ) // non-protocol version
     {
-        int conc = segments[0][0];
+       //qDebug() << "This is not a protocol";
+        int conc = segments[0][1]; // start and end are same, just use start
         QVector<double> rates = calculateFlowRates(conc);
+        qDebug() << "Rates are " << rates;
+
 
         // Constant rate segment — RAT
         double aRate = rates[0];
         double bRate = rates[1];
+       //qDebug() << "rates are: " << aRate << bRate;
 
         // Pump A
         if (aRate > 0) {
             PumpPhase phaseA;
+           //qDebug() << "appending flow A";
             phaseA.phaseNumber = phaseCounterA;
             phaseA.function = "RAT";
             phaseA.rate = aRate;
@@ -798,6 +806,7 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
             phaseA.direction = "INF";
             phasesA.append(phaseA);
         } else {
+           //qDebug() << "appending stop A";
             // Pause for pump A
             PumpPhase pauseA;
             pauseA.phaseNumber = phaseCounterA;
@@ -807,15 +816,17 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
 
         // Pump B
         if (bRate > 0) {
+           //qDebug() << "appending flow B";
             PumpPhase phaseB;
             phaseB.phaseNumber = phaseCounterB;
             phaseB.function = "RAT";
-            phaseB.rate = aRate;
+            phaseB.rate = bRate;
             phaseB.volume = 0;
             phaseB.direction = "INF";
             phasesB.append(phaseB);
         } else {
             // Pause for pump B
+           //qDebug() << "appending stop b";
             PumpPhase pauseB;
             pauseB.phaseNumber = phaseCounterB;
             pauseB.function = "STOP";
@@ -973,20 +984,24 @@ QVector<QVector<PumpPhase>> PumpController::generatePumpPhases(const int startPh
             //qDebug() << "Phases: " << phaseCounterA << phaseCounterB;
         }
 
-        // Pump A - End
-        PumpPhase phaseA_stop;
-        phaseA_stop.phaseNumber = phaseCounterA;
-        phaseA_stop.function = "STOP";
-        phasesA.append(phaseA_stop);
-       ////qDeb << "Stops: " << phaseCounterA << phaseCounterB;
+        if (startPhase > 0) {
+        // We don't put a stop for the "basic" run
+        // AHH THIS IS BAD LOGIC DESIGN SORRY
+            // Pump A - End
+            PumpPhase phaseA_stop;
+            phaseA_stop.phaseNumber = phaseCounterA;
+            phaseA_stop.function = "STOP";
+            phasesA.append(phaseA_stop);
+           ////qDeb << "Stops: " << phaseCounterA << phaseCounterB;
 
-        // Pump B - Start
-        PumpPhase phaseB_stop;
-        phaseB_stop.phaseNumber = phaseCounterB;
-        phaseB_stop.function = "STOP";
-        phasesB.append(phaseB_stop);
+            // Pump B - Start
+            PumpPhase phaseB_stop;
+            phaseB_stop.phaseNumber = phaseCounterB;
+            phaseB_stop.function = "STOP";
+            phasesB.append(phaseB_stop);
+        }
     }
-
+    //qDebug() << "Phases: " << phasesA << phasesB;
     return { phasesA, phasesB };
 }
 
@@ -1014,4 +1029,5 @@ void PumpController::saveCurrentRun()
 {
     QVector<QVector<double>> data= ui->condPlot->getData();
     savedRuns.insert(startTime, qMakePair(data.value(0), data.value(1)));
+    condPreReadings.clear();
 }

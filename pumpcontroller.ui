@@ -810,13 +810,26 @@
   <tabstop>spinFlowRate</tabstop>
   <tabstop>spinPac</tabstop>
   <tabstop>spinPbc</tabstop>
+  <tabstop>butSetComs</tabstop>
   <tabstop>butConfirmSettings</tabstop>
+  <tabstop>butSelectCondLog</tabstop>
   <tabstop>spinStraightConc</tabstop>
   <tabstop>butStartPump</tabstop>
   <tabstop>butUpdatePump</tabstop>
   <tabstop>butStopPump</tabstop>
+  <tabstop>spinSegTime</tabstop>
+  <tabstop>spinStartConc</tabstop>
+  <tabstop>spinEndConc</tabstop>
+  <tabstop>butAddSegment</tabstop>
+  <tabstop>tableSegments</tabstop>
+  <tabstop>butDeleteSegment</tabstop>
+  <tabstop>butClearSegments</tabstop>
   <tabstop>butStartProtocol</tabstop>
+  <tabstop>butSendProtocol</tabstop>
   <tabstop>butStopProtocol</tabstop>
+  <tabstop>butClearConsole</tabstop>
+  <tabstop>butSaveConsole</tabstop>
+  <tabstop>console</tabstop>
  </tabstops>
  <resources/>
  <connections/>

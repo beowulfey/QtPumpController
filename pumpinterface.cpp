@@ -275,7 +275,7 @@ void PumpInterface::setPhases(const QVector<QVector<PumpPhase>> &phases)
 
             emit sendCommandToQueue(phaseFunc);
             //emit sendCommandToQueue(phaseTime);
-          //  qDebug() << "TIME: " << phase.time;
+            //qDebug() << "TIME: " << phase.time;
         }
         else if (phase.function == "STOP"){
             AddressedCommand stopPhase;
@@ -304,7 +304,7 @@ bool PumpInterface::startPumps(int phase)
 
 
     qint64 bytesWritten = serial->write(packet);
-    qDebug() << "Sending to pump: " << packet;
+   //qDebug() << "Sending to pump: " << packet;
     return bytesWritten == packet.size();
 }
 
@@ -326,7 +326,7 @@ bool PumpInterface::stopPumps()
 
 
     qint64 bytesWritten = serial->write(packet);
-    qDebug() << "Sending to pump: " << packet;
+    //qDebug() << "Sending to pump: " << packet;
     QThread::msleep(30);
     qint64 bytesWritten2 = serial->write(packet);
     return bytesWritten+bytesWritten2 == 2*packet.size();
@@ -432,7 +432,7 @@ void PumpInterface::handleReadyRead() {
     }
 
     // Optionally print buffer contents during debugging
-   // qDebug() << "Current buffer:" << serialBuffer.toHex(' ');
+   //qDebug() << "Current buffer:" << serialBuffer.toHex(' ');
 }
 
 
