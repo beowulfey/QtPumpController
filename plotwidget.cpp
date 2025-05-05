@@ -119,14 +119,14 @@ void PlotWidget::onChange() {
     double xMin = 0.0, xMax = 10.0;
 
     double yMin = yBot, yMax = yTop;
-    if (yTop == yBot == 0)
-    {
-        if (!yData.isEmpty()) {
-            auto yMinMax = std::minmax_element(yData.constBegin(), yData.constEnd());
-            yMin = *yMinMax.first;
-            yMax = *yMinMax.second;
-        }
-    }
+    //if (yTop == yBot == 0)
+    //{
+    //    if (!yData.isEmpty()) {
+    //        auto yMinMax = std::minmax_element(yData.constBegin(), yData.constEnd());
+    //        yMin = *yMinMax.first;
+    //        yMax = *yMinMax.second;
+    //    }
+    //}
 
     if (!xData.isEmpty()) {
         auto xMinMax = std::minmax_element(xData.constBegin(), xData.constEnd());

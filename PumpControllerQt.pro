@@ -47,9 +47,9 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-VERSION_MAJOR = 0
-VERSION_MINOR = 9
-VERSION_BUILD = 0
+VERSION_MAJOR = 1
+VERSION_MINOR = 0
+VERSION_BUILD = 2
 
 DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
        "VERSION_MINOR=$$VERSION_MINOR"\

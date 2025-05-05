@@ -87,7 +87,7 @@ PumpController::PumpController(QWidget *parent)
     // Adjust the conductivity plot from default
     ui->condPlot->setYlabel("mS/cm");
     ui->label_cond_units->setText("mS/cm");
-    //ui->condPlot->setYAxis(0,15);
+    ui->condPlot->setYAxis(0,15); // just freakin hardcode it
 
     //if (ui->butSetCondMin) {
     //    ui->gridLayout_7->removeWidget(ui->butSetCondMin); // remove from layout

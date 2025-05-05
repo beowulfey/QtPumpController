@@ -1,6 +1,7 @@
 #include "condinterface.h"
 #include <QDebug>
 #include <QDateTime>
+#include <QMetaEnum>
 
 CondInterface::CondInterface(QObject* parent) : QObject(parent), serial(new QSerialPort(this)) {
     qDebug() << "Creating CondInterface";
@@ -11,6 +12,7 @@ CondInterface::CondInterface(QObject* parent) : QObject(parent), serial(new QSer
     condWorker = new CondWorker(this, nullptr);
     condWorker->moveToThread(workerThread);
     workerThread->start();
+    QMetaObject::invokeMethod(condWorker, "initialize", Qt::QueuedConnection); //starts timer after moved
 
     connect(this, &CondInterface::sendCommand, condWorker, &CondWorker::enqueueCommand, Qt::QueuedConnection);
     connect(condWorker, &CondWorker::condCommandReady, this, &CondInterface::handleCommand, Qt::QueuedConnection);
@@ -131,7 +133,18 @@ void CondInterface::handleReadyRead() {
 }
 
 void CondInterface::handleError(QSerialPort::SerialPortError error) {
-    if (error == QSerialPort::NoError)
-        return;
-    emit errorOccurred("Serial error: " + serial->errorString());
+    if (error != QSerialPort::NoError) {
+        // Get error name as string
+        const QMetaObject &mo = QSerialPort::staticMetaObject;
+        int index = mo.indexOfEnumerator("SerialPortError");
+        QMetaEnum metaEnum = mo.enumerator(index);
+        QString errorStr = QString::fromLatin1(metaEnum.valueToKey(error));
+
+        qWarning() << "Serial error occurred:" << errorStr << "(" << error << ")";
+
+        if (error == QSerialPort::ResourceError) {
+            serial->close();
+            emit errorOccurred(errorStr);  // You might want to pass the string too
+        }
+    }
 }

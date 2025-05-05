@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QQueue>
 #include <QTime>
+#include <QTimer>
 
 // Queues the commands used by CondInterface for sending to meter.
 // Used exact same layout as PumpCommandWorker
@@ -32,14 +33,15 @@ signals:
 
 
 public slots:
-    void enqueueCommand(const QString& cmd);
+    void enqueueCommand(const QString& cmd);public slots:
+    void initialize();  // slot to set up the timer
 
 private slots:
     void onResponseReceived(CondReading response);
 
 private:
     void processNext();
-
+    QTimer* timeoutTimer;
     QQueue<QString> commandQueue;
     CondInterface* condInterface;
     bool processing = false;
